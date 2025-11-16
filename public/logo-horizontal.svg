@@ -1,0 +1,18 @@
+<svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Circular Network Icon -->
+  <circle cx="30" cy="30" r="25" fill="none" stroke="#00b3c6" stroke-width="2" opacity="0.3"/>
+  <circle cx="30" cy="30" r="20" fill="none" stroke="#344a51" stroke-width="1.5" opacity="0.5"/>
+  <!-- Network lines -->
+  <path d="M15 30 L25 20 M25 20 L35 20 M35 20 L45 30 M45 30 L35 40 M35 40 L25 40 M25 40 L15 30" 
+        stroke="#00b3c6" stroke-width="1.5" fill="none" opacity="0.6"/>
+  <!-- CI Letters -->
+  <text x="30" y="35" font-family="Arial, sans-serif" font-size="16" font-weight="bold" 
+        fill="#e0e1e1" text-anchor="middle">CI</text>
+  
+  <!-- Codeat Text -->
+  <text x="70" y="25" font-family="Arial, sans-serif" font-size="24" font-weight="bold" 
+        fill="#e0e1e1">Codeat</text>
+  <text x="70" y="45" font-family="Arial, sans-serif" font-size="12" 
+        fill="#9da0a1" letter-spacing="2">INFOTECH</text>
+</svg>
+
