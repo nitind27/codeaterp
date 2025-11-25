@@ -29,7 +29,7 @@ Create `.env` file in root directory:
 ```env
 DB_HOST=localhost
 DB_USER=root
-DB_PASSWORD=your_mysql_password
+DB_PASSWORD=
 DB_NAME=codeat_erp
 
 JWT_SECRET=change-this-to-random-secret-key

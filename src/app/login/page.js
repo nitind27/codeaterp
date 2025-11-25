@@ -104,12 +104,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-codeat-dark via-codeat-mid to-codeat-dark flex items-center justify-center p-4">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-codeat-teal rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-codeat-accent rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-      </div>
-
+    <div className="min-h-screen bg-gradient-to-br from-codeat-dark via-codeat-mid to-codeat-dark flex items-center justify-center p-5">
+    
       <div className="w-full max-w-md relative z-10">
         <div className="bg-codeat-mid/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-codeat-muted/50 p-8 md:p-10">
           {/* Logo Section */}
