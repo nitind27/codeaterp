@@ -22,6 +22,8 @@ export default function Layout({ children, user }) {
       { name: 'Projects', path: '/projects', icon: '📁' },
       { name: 'Attendance', path: '/attendance', icon: '⏰' },
       { name: 'Leave Management', path: '/leave', icon: '📅' },
+      { name: 'Holidays', path: '/holidays', icon: '🎉' },
+      { name: 'Achievements', path: '/achievements', icon: '🏆' },
       { name: 'Complaints', path: '/complaints', icon: '📝' },
       { name: 'Reports', path: '/reports', icon: '📈' },
       { name: 'Settings', path: '/settings', icon: '⚙️' },
@@ -32,10 +34,14 @@ export default function Layout({ children, user }) {
       { name: 'Employees', path: '/employees', icon: '👥' },
       { name: 'Attendance', path: '/attendance', icon: '⏰' },
       { name: 'Leave Management', path: '/leave', icon: '📅' },
+      { name: 'Holidays', path: '/holidays', icon: '🎉' },
+      { name: 'Achievements', path: '/achievements', icon: '🏆' },
       { name: 'Complaints', path: '/complaints', icon: '📝' },
       { name: 'Interviews', path: '/interviews', icon: '🎯' },
       { name: 'Reports', path: '/reports', icon: '📈' },
-      { name: 'Discussions', path: '/discussions', icon: '💬' }
+      { name: 'Discussions', path: '/discussions', icon: '💬' },
+      { name: 'Holidays', path: '/holidays', icon: '🎉' },
+      { name: 'Achievements', path: '/achievements', icon: '🏆' }
     ],
     project_manager: [
       { name: 'Dashboard', path: '/dashboard', icon: '📊' },
@@ -48,6 +54,8 @@ export default function Layout({ children, user }) {
       { name: 'Dashboard', path: '/dashboard', icon: '📊' },
       { name: 'Attendance', path: '/attendance', icon: '⏰' },
       { name: 'Leave', path: '/leave', icon: '📅' },
+      { name: 'Holidays', path: '/holidays', icon: '🎉' },
+      { name: 'Achievements', path: '/achievements', icon: '🏆' },
       { name: 'Tasks', path: '/tasks', icon: '✅' },
       { name: 'Complaints', path: '/complaints', icon: '📝' },
       { name: 'Profile', path: '/profile', icon: '👤' },
@@ -57,6 +65,8 @@ export default function Layout({ children, user }) {
       { name: 'Dashboard', path: '/dashboard', icon: '📊' },
       { name: 'Attendance', path: '/attendance', icon: '⏰' },
       { name: 'Leave', path: '/leave', icon: '📅' },
+      { name: 'Holidays', path: '/holidays', icon: '🎉' },
+      { name: 'Achievements', path: '/achievements', icon: '🏆' },
       { name: 'Tasks', path: '/tasks', icon: '✅' },
       { name: 'Profile', path: '/profile', icon: '👤' },
       { name: 'Discussions', path: '/discussions', icon: '💬' }

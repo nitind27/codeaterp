@@ -23,8 +23,10 @@ export async function GET(req) {
         name: type.name,
         code: type.code,
         maxDays: type.max_days,
+        fixedDays: type.max_days, // Fixed days for the leave type
         isPaid: type.is_paid,
-        description: type.description
+        description: type.description,
+        isActive: type.is_active
       }))
     });
   } catch (error) {

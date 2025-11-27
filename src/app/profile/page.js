@@ -108,6 +108,21 @@ export default function ProfilePage() {
               </div>
             </div>
             <div>
+              <label className="block text-codeat-gray text-sm font-medium mb-2">Date of Birth</label>
+              <div className="px-4 py-2 bg-codeat-dark rounded-lg text-codeat-silver">
+                {employee?.dateOfBirth ? new Date(employee.dateOfBirth).toLocaleDateString('en-US', { 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                }) : '-'}
+                {employee?.dateOfBirth && (
+                  <span className="ml-2 text-codeat-gray text-xs">
+                    (Birthday tracking enabled 🎂)
+                  </span>
+                )}
+              </div>
+            </div>
+            <div>
               <label className="block text-codeat-gray text-sm font-medium mb-2">Joining Date</label>
               <div className="px-4 py-2 bg-codeat-dark rounded-lg text-codeat-silver">
                 {employee?.joiningDate ? new Date(employee.joiningDate).toLocaleDateString() : '-'}

@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import pool from '../../../../lib/db.js';
 import { authenticate, authorize } from '../../../../lib/auth.js';
-import { calculateDaysBetween } from '../../../../lib/utils.js';
+import { 
+  calculateDaysBetween, 
+  calculateLeaveDays, 
+  calculateLeaveHours,
+  validateTimeRange 
+} from '../../../../lib/utils.js';
 import { logActivity } from '../../../../lib/logger.js';
 import { sendLeaveApprovalEmail } from '../../../../lib/email.js';
 
@@ -83,7 +88,12 @@ export async function GET(req) {
         leaveTypeCode: leave.leave_type_code,
         startDate: leave.start_date,
         endDate: leave.end_date,
+        durationType: leave.duration_type || 'full_day',
+        halfDaySlot: leave.half_day_slot || null,
+        startTime: leave.start_time,
+        endTime: leave.end_time,
         totalDays: leave.total_days,
+        totalHours: leave.total_hours || 0,
         reason: leave.reason,
         status: leave.status,
         approvedBy: leave.approved_by,
@@ -116,11 +126,91 @@ export async function POST(req) {
     }
 
     const { user } = authResult;
-    const { leaveTypeId, startDate, endDate, reason, attachment } = await req.json();
+    const { 
+      leaveTypeId, 
+      startDate, 
+      endDate, 
+      durationType = 'full_day',
+      halfDaySlot,
+      startTime,
+      endTime,
+      reason, 
+      attachment 
+    } = await req.json();
 
+    // Validation
     if (!leaveTypeId || !startDate || !endDate) {
       return NextResponse.json(
         { error: 'Leave type, start date, and end date are required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate duration type
+    if (!['full_day', 'half_day', 'hourly'].includes(durationType)) {
+      return NextResponse.json(
+        { error: 'Invalid duration type. Must be full_day, half_day, or hourly' },
+        { status: 400 }
+      );
+    }
+
+    // Validate time fields for half_day and hourly
+    const halfDaySlots = {
+      before_lunch: { start: '09:00', end: '13:00' },
+      after_lunch: { start: '13:00', end: '17:00' }
+    };
+
+    let normalizedStartTime = startTime;
+    let normalizedEndTime = endTime;
+
+    if (durationType === 'half_day') {
+      if (!halfDaySlot || !halfDaySlots[halfDaySlot]) {
+        return NextResponse.json(
+          { error: 'Please select Before Lunch or After Lunch for half-day leave' },
+          { status: 400 }
+        );
+      }
+
+      if (startDate !== endDate) {
+        return NextResponse.json(
+          { error: 'Half-day leaves must start and end on the same day' },
+          { status: 400 }
+        );
+      }
+
+      normalizedStartTime = halfDaySlots[halfDaySlot].start;
+      normalizedEndTime = halfDaySlots[halfDaySlot].end;
+    }
+
+    if (durationType === 'hourly') {
+      if (!startDate || !endDate || startDate !== endDate) {
+        return NextResponse.json(
+          { error: 'Hourly leaves can only be applied for a single day. Please use the same start and end date.' },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (durationType === 'half_day' || durationType === 'hourly') {
+      if (!normalizedStartTime || !normalizedEndTime) {
+        return NextResponse.json(
+          { error: 'Start time and end time are required for half-day and hourly leaves' },
+          { status: 400 }
+        );
+      }
+      const timeValidation = validateTimeRange(normalizedStartTime, normalizedEndTime);
+      if (!timeValidation.valid) {
+        return NextResponse.json(
+          { error: timeValidation.error },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate date range
+    if (new Date(endDate) < new Date(startDate)) {
+      return NextResponse.json(
+        { error: 'End date cannot be before start date' },
         { status: 400 }
       );
     }
@@ -139,12 +229,71 @@ export async function POST(req) {
     }
 
     const employeeId = employees[0].id;
-    const totalDays = calculateDaysBetween(startDate, endDate);
+
+    // Enforce monthly leave limit (1 per month, unused previous month adds one more slot)
+    const requestedDate = new Date(startDate);
+    const requestMonth = requestedDate.getMonth() + 1;
+    const requestYear = requestedDate.getFullYear();
+
+    const [currentMonthLeaves] = await pool.execute(
+      `SELECT COUNT(*) as count 
+       FROM leave_applications 
+       WHERE employee_id = ? 
+         AND YEAR(start_date) = ? 
+         AND MONTH(start_date) = ?
+         AND status IN ('pending', 'approved')`,
+      [employeeId, requestYear, requestMonth]
+    );
+
+    const previousMonthDate = new Date(requestedDate);
+    previousMonthDate.setMonth(previousMonthDate.getMonth() - 1);
+    const prevMonth = previousMonthDate.getMonth() + 1;
+    const prevYear = previousMonthDate.getFullYear();
+
+    let carryForwardSlots = 0;
+    if (prevMonth > 0) {
+      const [previousMonthLeaves] = await pool.execute(
+        `SELECT COUNT(*) as count 
+         FROM leave_applications 
+         WHERE employee_id = ? 
+           AND YEAR(start_date) = ? 
+           AND MONTH(start_date) = ?
+           AND status = 'approved'`,
+        [employeeId, prevYear, prevMonth]
+      );
+
+      if (previousMonthLeaves[0].count === 0) {
+        carryForwardSlots = 1;
+      }
+    }
+
+    const monthlyAllowance = 1 + carryForwardSlots;
+    const currentMonthCount = currentMonthLeaves[0].count || 0;
+
+    if (currentMonthCount >= monthlyAllowance) {
+      return NextResponse.json(
+        { 
+          error: `You have already used your leave quota for ${requestedDate.toLocaleString('default', { month: 'long', year: 'numeric' })}. Each month allows 1 leave, plus 1 carry-forward if you skipped the previous month.` 
+        },
+        { status: 400 }
+      );
+    }
+    
+    // Calculate leave days and hours
+    const totalDays = calculateLeaveDays(durationType, startDate, endDate, normalizedStartTime, normalizedEndTime);
+    const totalHours = calculateLeaveHours(durationType, startDate, endDate, normalizedStartTime, normalizedEndTime);
+
+    if (totalDays <= 0 && totalHours <= 0) {
+      return NextResponse.json(
+        { error: 'Leave duration must be greater than zero' },
+        { status: 400 }
+      );
+    }
 
     // Check leave balance
     const currentYear = new Date().getFullYear();
     const [balance] = await pool.execute(
-      `SELECT total_days, used_days, pending_days 
+      `SELECT total_days, used_days, pending_days, total_hours, used_hours, pending_hours
        FROM leave_balance 
        WHERE employee_id = ? AND leave_type_id = ? AND year = ?`,
       [employeeId, leaveTypeId, currentYear]
@@ -157,32 +306,78 @@ export async function POST(req) {
       );
     }
 
-    const availableDays = balance[0].total_days - balance[0].used_days - balance[0].pending_days;
-    if (totalDays > availableDays) {
-      return NextResponse.json(
-        { error: 'Insufficient leave balance' },
-        { status: 400 }
-      );
+    const bal = balance[0];
+    
+    // Check balance based on duration type
+    if (durationType === 'hourly') {
+      const availableHours = (bal.total_hours || 0) - (bal.used_hours || 0) - (bal.pending_hours || 0);
+      // Also check days balance (convert hours to days for comparison)
+      const availableDays = bal.total_days - bal.used_days - bal.pending_days;
+      const daysFromHours = totalHours / 8;
+      
+      if (totalHours > availableHours && daysFromHours > availableDays) {
+        return NextResponse.json(
+          { error: `Insufficient leave balance. Available: ${availableHours.toFixed(2)} hours or ${availableDays} days` },
+          { status: 400 }
+        );
+      }
+    } else {
+      const availableDays = bal.total_days - bal.used_days - bal.pending_days;
+      if (totalDays > availableDays) {
+        return NextResponse.json(
+          { error: `Insufficient leave balance. Available: ${availableDays} days` },
+          { status: 400 }
+        );
+      }
     }
 
     // Create leave application
     const [result] = await pool.execute(
       `INSERT INTO leave_applications 
-       (employee_id, leave_type_id, start_date, end_date, total_days, reason, attachment, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')`,
-      [employeeId, leaveTypeId, startDate, endDate, totalDays, reason, attachment]
+       (employee_id, leave_type_id, duration_type, half_day_slot, start_date, end_date, start_time, end_time, total_days, total_hours, reason, attachment, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+      [
+        employeeId, 
+        leaveTypeId, 
+        durationType,
+        durationType === 'half_day' ? halfDaySlot : null,
+        startDate, 
+        endDate, 
+        normalizedStartTime || null,
+        normalizedEndTime || null,
+        totalDays, 
+        totalHours,
+        reason, 
+        attachment
+      ]
     );
 
-    // Update pending days
-    await pool.execute(
-      `UPDATE leave_balance 
-       SET pending_days = pending_days + ? 
-       WHERE employee_id = ? AND leave_type_id = ? AND year = ?`,
-      [totalDays, employeeId, leaveTypeId, currentYear]
-    );
+    // Update pending days/hours
+    if (durationType === 'hourly') {
+      await pool.execute(
+        `UPDATE leave_balance 
+         SET pending_hours = COALESCE(pending_hours, 0) + ?,
+             pending_days = pending_days + ?
+         WHERE employee_id = ? AND leave_type_id = ? AND year = ?`,
+        [totalHours, totalDays, employeeId, leaveTypeId, currentYear]
+      );
+    } else {
+      await pool.execute(
+        `UPDATE leave_balance 
+         SET pending_days = pending_days + ? 
+         WHERE employee_id = ? AND leave_type_id = ? AND year = ?`,
+        [totalDays, employeeId, leaveTypeId, currentYear]
+      );
+    }
+
+    const leaveDescription = durationType === 'hourly' 
+      ? `${totalHours.toFixed(2)} hours leave`
+      : durationType === 'half_day'
+      ? `${totalDays} half-day leave (${halfDaySlot?.replace('_', ' ')})`
+      : `${totalDays} days leave`;
 
     await logActivity(user.id, 'apply_leave', 'leave', result.insertId, 
-      `Applied for ${totalDays} days leave`, req);
+      `Applied for ${leaveDescription}`, req);
 
     return NextResponse.json({
       success: true,

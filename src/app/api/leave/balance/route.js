@@ -41,7 +41,7 @@ export async function GET(req) {
 
     const currentYear = new Date().getFullYear();
     const [balance] = await pool.execute(
-      `SELECT lb.*, lt.name as leave_type_name, lt.code as leave_type_code
+      `SELECT lb.*, lt.name as leave_type_name, lt.code as leave_type_code, lt.max_days
        FROM leave_balance lb
        JOIN leave_types lt ON lb.leave_type_id = lt.id
        WHERE lb.employee_id = ? AND lb.year = ?`,
@@ -59,7 +59,12 @@ export async function GET(req) {
         totalDays: b.total_days,
         usedDays: b.used_days,
         pendingDays: b.pending_days,
-        availableDays: b.total_days - b.used_days - b.pending_days
+        availableDays: b.total_days - b.used_days - b.pending_days,
+        totalHours: b.total_hours || 0,
+        usedHours: b.used_hours || 0,
+        pendingHours: b.pending_hours || 0,
+        availableHours: (b.total_hours || 0) - (b.used_hours || 0) - (b.pending_hours || 0),
+        maxDays: b.max_days
       }))
     });
   } catch (error) {

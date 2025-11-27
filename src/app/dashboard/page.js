@@ -9,6 +9,11 @@ export default function DashboardPage() {
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
+  const [anniversaries, setAnniversaries] = useState({
+    birthdays: [],
+    workAnniversaries: [],
+    companyAnniversary: null
+  });
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -91,6 +96,23 @@ export default function DashboardPage() {
           completedTasks: tasks.tasks?.filter(t => t.status === 'done').length || 0
         });
       }
+
+      // Load anniversaries for all users
+      try {
+        const anniversariesRes = await fetch('/api/anniversaries', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const anniversariesData = await anniversariesRes.json();
+        if (anniversariesData.success) {
+          setAnniversaries({
+            birthdays: anniversariesData.birthdays || [],
+            workAnniversaries: anniversariesData.workAnniversaries || [],
+            companyAnniversary: anniversariesData.companyAnniversary || null
+          });
+        }
+      } catch (error) {
+        console.error('Error loading anniversaries:', error);
+      }
     } catch (error) {
       console.error('Error loading dashboard:', error);
     } finally {
@@ -120,6 +142,117 @@ export default function DashboardPage() {
       </div>
     </div>
   );
+
+  const AnniversaryCard = ({ type, name, department, designation, daysUntil, age, yearsOfService, date }) => {
+    const isToday = daysUntil === 0;
+    const isTomorrow = daysUntil === 1;
+    const isDayAfter = daysUntil === 2;
+    
+    let timeText = '';
+    if (isToday) timeText = 'Today';
+    else if (isTomorrow) timeText = 'Tomorrow';
+    else if (isDayAfter) timeText = 'Day After';
+    else timeText = `In ${daysUntil} days`;
+
+    const formatDate = (dateString) => {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    };
+
+    if (type === 'birthday') {
+      return (
+        <div className="bg-gradient-to-br from-pink-500/20 to-rose-500/20 rounded-2xl p-5 border border-pink-500/30 shadow-lg hover:shadow-xl transition-all duration-300 card-hover">
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-2xl shadow-lg">
+                🎂
+              </div>
+              <div>
+                <h3 className="text-codeat-silver font-semibold text-lg">{name}</h3>
+                <p className="text-codeat-gray text-sm">{department || 'General'}</p>
+              </div>
+            </div>
+            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+              isToday ? 'bg-pink-500 text-white' : 'bg-pink-500/30 text-pink-300'
+            }`}>
+              {timeText}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-codeat-gray text-xs uppercase tracking-wide mb-1">Birthday</p>
+              <p className="text-codeat-silver font-medium">{formatDate(date)}</p>
+              {age && <p className="text-codeat-gray text-sm mt-1">Turning {age} years old</p>}
+            </div>
+            <div className="text-3xl opacity-50">🎉</div>
+          </div>
+        </div>
+      );
+    } else if (type === 'work_anniversary') {
+      return (
+        <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-2xl p-5 border border-blue-500/30 shadow-lg hover:shadow-xl transition-all duration-300 card-hover">
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-2xl shadow-lg">
+                🎊
+              </div>
+              <div>
+                <h3 className="text-codeat-silver font-semibold text-lg">{name}</h3>
+                <p className="text-codeat-gray text-sm">{designation || department || 'Employee'}</p>
+              </div>
+            </div>
+            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+              isToday ? 'bg-blue-500 text-white' : 'bg-blue-500/30 text-blue-300'
+            }`}>
+              {timeText}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-codeat-gray text-xs uppercase tracking-wide mb-1">Work Anniversary</p>
+              <p className="text-codeat-silver font-medium">{formatDate(date)}</p>
+              {yearsOfService !== null && (
+                <p className="text-codeat-gray text-sm mt-1">{yearsOfService} {yearsOfService === 1 ? 'year' : 'years'} of service</p>
+              )}
+            </div>
+            <div className="text-3xl opacity-50">🏆</div>
+          </div>
+        </div>
+      );
+    } else if (type === 'company_anniversary') {
+      return (
+        <div className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 rounded-2xl p-5 border border-purple-500/30 shadow-lg hover:shadow-xl transition-all duration-300 card-hover">
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-2xl shadow-lg">
+                🏢
+              </div>
+              <div>
+                <h3 className="text-codeat-silver font-semibold text-lg">Company Anniversary</h3>
+                <p className="text-codeat-gray text-sm">Celebrating together</p>
+              </div>
+            </div>
+            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+              isToday ? 'bg-purple-500 text-white' : 'bg-purple-500/30 text-purple-300'
+            }`}>
+              {timeText}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-codeat-gray text-xs uppercase tracking-wide mb-1">Anniversary Date</p>
+              <p className="text-codeat-silver font-medium">{formatDate(date)}</p>
+              {yearsOfService !== null && (
+                <p className="text-codeat-gray text-sm mt-1">{yearsOfService} {yearsOfService === 1 ? 'year' : 'years'} milestone</p>
+              )}
+            </div>
+            <div className="text-3xl opacity-50">🎈</div>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <Layout user={user}>
@@ -162,6 +295,57 @@ export default function DashboardPage() {
             </>
           )}
         </div>
+
+        {/* Upcoming Celebrations */}
+        {(anniversaries.birthdays.length > 0 || anniversaries.workAnniversaries.length > 0 || anniversaries.companyAnniversary) && (
+          <div className="bg-codeat-mid rounded-2xl p-6 lg:p-8 border border-codeat-muted/30 shadow-xl">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-codeat-silver mb-1">Upcoming Celebrations</h2>
+                <p className="text-codeat-gray text-sm">Birthdays, anniversaries & milestones in the next 3 days</p>
+              </div>
+              <div className="text-4xl opacity-30">🎉</div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Company Anniversary */}
+              {anniversaries.companyAnniversary && (
+                <AnniversaryCard
+                  type="company_anniversary"
+                  name="Company Anniversary"
+                  date={anniversaries.companyAnniversary.date}
+                  daysUntil={anniversaries.companyAnniversary.daysUntil}
+                  yearsOfService={anniversaries.companyAnniversary.years}
+                />
+              )}
+              {/* Birthdays */}
+              {anniversaries.birthdays.map((birthday) => (
+                <AnniversaryCard
+                  key={`birthday-${birthday.id}`}
+                  type="birthday"
+                  name={birthday.name}
+                  department={birthday.department}
+                  designation={birthday.designation}
+                  date={birthday.date}
+                  daysUntil={birthday.daysUntil}
+                  age={birthday.age}
+                />
+              ))}
+              {/* Work Anniversaries */}
+              {anniversaries.workAnniversaries.map((anniversary) => (
+                <AnniversaryCard
+                  key={`anniversary-${anniversary.id}`}
+                  type="work_anniversary"
+                  name={anniversary.name}
+                  department={anniversary.department}
+                  designation={anniversary.designation}
+                  date={anniversary.date}
+                  daysUntil={anniversary.daysUntil}
+                  yearsOfService={anniversary.yearsOfService}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Quick Actions */}
         <div className="bg-codeat-mid rounded-2xl p-6 lg:p-8 border border-codeat-muted/30 shadow-xl">

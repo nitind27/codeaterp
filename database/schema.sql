@@ -110,9 +110,12 @@ CREATE TABLE IF NOT EXISTS leave_balance (
     employee_id INT NOT NULL,
     leave_type_id INT NOT NULL,
     year YEAR NOT NULL,
-    total_days INT DEFAULT 0,
-    used_days INT DEFAULT 0,
-    pending_days INT DEFAULT 0,
+    total_days DECIMAL(5,2) DEFAULT 0.00,
+    used_days DECIMAL(5,2) DEFAULT 0.00,
+    pending_days DECIMAL(5,2) DEFAULT 0.00,
+    total_hours DECIMAL(5,2) DEFAULT 0.00,
+    used_hours DECIMAL(5,2) DEFAULT 0.00,
+    pending_hours DECIMAL(5,2) DEFAULT 0.00,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
@@ -127,9 +130,14 @@ CREATE TABLE IF NOT EXISTS leave_applications (
     id INT PRIMARY KEY AUTO_INCREMENT,
     employee_id INT NOT NULL,
     leave_type_id INT NOT NULL,
+    duration_type ENUM('full_day', 'half_day', 'hourly') DEFAULT 'full_day',
+    half_day_slot ENUM('before_lunch', 'after_lunch'),
     start_date DATE NOT NULL,
+    start_time TIME NULL,
     end_date DATE NOT NULL,
-    total_days INT NOT NULL,
+    end_time TIME NULL,
+    total_days DECIMAL(5,2) NOT NULL,
+    total_hours DECIMAL(5,2) DEFAULT 0.00,
     reason TEXT,
     status ENUM('pending', 'approved', 'rejected', 'cancelled') DEFAULT 'pending',
     approved_by INT,
@@ -143,7 +151,43 @@ CREATE TABLE IF NOT EXISTS leave_applications (
     FOREIGN KEY (approved_by) REFERENCES users(id) ON DELETE SET NULL,
     INDEX idx_employee (employee_id),
     INDEX idx_status (status),
-    INDEX idx_dates (start_date, end_date)
+    INDEX idx_dates (start_date, end_date),
+    INDEX idx_leave_month (employee_id, start_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Holidays Table
+CREATE TABLE IF NOT EXISTS holidays (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(150) NOT NULL,
+    description TEXT,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    total_days DECIMAL(5,2) NOT NULL,
+    is_optional BOOLEAN DEFAULT FALSE,
+    created_by INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_holiday_dates (start_date, end_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Achievements Table
+CREATE TABLE IF NOT EXISTS achievements (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    employee_id INT NULL,
+    title VARCHAR(150) NOT NULL,
+    description TEXT,
+    awarded_on DATE NOT NULL,
+    badge_color VARCHAR(20),
+    points INT DEFAULT 0,
+    attachment VARCHAR(255),
+    created_by INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_awarded_on (awarded_on),
+    INDEX idx_employee_award (employee_id, awarded_on)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Projects Table
@@ -433,7 +477,8 @@ INSERT INTO system_settings (setting_key, setting_value, setting_type, descripti
 ('smtp_user', '', 'string', 'SMTP username'),
 ('smtp_password', '', 'string', 'SMTP password'),
 ('smtp_from_email', 'noreply@codeat.com', 'string', 'Default from email address'),
-('birthday_reminder_days', '7', 'number', 'Days before birthday to send reminder');
+('birthday_reminder_days', '7', 'number', 'Days before birthday to send reminder'),
+('company_anniversary_date', '2020-01-15', 'string', 'Company founding/anniversary date');
 
 -- Insert Default General Discussion Channel
 INSERT INTO discussion_channels (name, type, description, created_by) VALUES

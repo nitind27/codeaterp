@@ -62,12 +62,32 @@ export async function PUT(req, { params }) {
       );
 
       // Update leave balance
-      await pool.execute(
-        `UPDATE leave_balance 
-         SET pending_days = pending_days - ?, used_days = used_days + ?
-         WHERE employee_id = ? AND leave_type_id = ? AND year = ?`,
-        [leave.total_days, leave.total_days, leave.employee_id, leave.leave_type_id, currentYear]
-      );
+      if (leave.duration_type === 'hourly' && leave.total_hours > 0) {
+        await pool.execute(
+          `UPDATE leave_balance 
+           SET pending_days = pending_days - ?, 
+               pending_hours = COALESCE(pending_hours, 0) - ?,
+               used_days = used_days + ?,
+               used_hours = COALESCE(used_hours, 0) + ?
+           WHERE employee_id = ? AND leave_type_id = ? AND year = ?`,
+          [
+            leave.total_days, 
+            leave.total_hours,
+            leave.total_days, 
+            leave.total_hours,
+            leave.employee_id, 
+            leave.leave_type_id, 
+            currentYear
+          ]
+        );
+      } else {
+        await pool.execute(
+          `UPDATE leave_balance 
+           SET pending_days = pending_days - ?, used_days = used_days + ?
+           WHERE employee_id = ? AND leave_type_id = ? AND year = ?`,
+          [leave.total_days, leave.total_days, leave.employee_id, leave.leave_type_id, currentYear]
+        );
+      }
 
       // Send email
       await sendLeaveApprovalEmail(
@@ -83,13 +103,23 @@ export async function PUT(req, { params }) {
         [authResult.user.id, rejectionReason || 'Rejected by HR', id]
       );
 
-      // Update leave balance (remove pending days)
-      await pool.execute(
-        `UPDATE leave_balance 
-         SET pending_days = pending_days - ?
-         WHERE employee_id = ? AND leave_type_id = ? AND year = ?`,
-        [leave.total_days, leave.employee_id, leave.leave_type_id, currentYear]
-      );
+      // Update leave balance (remove pending days/hours)
+      if (leave.duration_type === 'hourly' && leave.total_hours > 0) {
+        await pool.execute(
+          `UPDATE leave_balance 
+           SET pending_days = pending_days - ?,
+               pending_hours = COALESCE(pending_hours, 0) - ?
+           WHERE employee_id = ? AND leave_type_id = ? AND year = ?`,
+          [leave.total_days, leave.total_hours, leave.employee_id, leave.leave_type_id, currentYear]
+        );
+      } else {
+        await pool.execute(
+          `UPDATE leave_balance 
+           SET pending_days = pending_days - ?
+           WHERE employee_id = ? AND leave_type_id = ? AND year = ?`,
+          [leave.total_days, leave.employee_id, leave.leave_type_id, currentYear]
+        );
+      }
 
       // Send email
       await sendLeaveApprovalEmail(

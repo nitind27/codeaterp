@@ -20,7 +20,8 @@ export default function EmployeesPage() {
     phone: '',
     department: '',
     designation: '',
-    joining_date: new Date().toISOString().split('T')[0]
+    joining_date: new Date().toISOString().split('T')[0],
+    date_of_birth: ''
   });
 
   useEffect(() => {
@@ -88,7 +89,8 @@ export default function EmployeesPage() {
           phone: formData.phone,
           department: formData.department,
           designation: formData.designation,
-          joining_date: formData.joining_date
+          joining_date: formData.joining_date,
+          date_of_birth: formData.date_of_birth || null
         })
       });
 
@@ -105,7 +107,8 @@ export default function EmployeesPage() {
           phone: '',
           department: '',
           designation: '',
-          joining_date: new Date().toISOString().split('T')[0]
+          joining_date: new Date().toISOString().split('T')[0],
+          date_of_birth: ''
         });
         loadEmployees();
       } else {
@@ -314,14 +317,28 @@ export default function EmployeesPage() {
                     />
                   </div>
                 </div>
-                <div>
-                  <label className="block text-codeat-silver text-sm font-semibold mb-2.5">Joining Date</label>
-                  <input
-                    type="date"
-                    value={formData.joining_date}
-                    onChange={(e) => setFormData({ ...formData, joining_date: e.target.value })}
-                    className="input-field"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
+                  <div>
+                    <label className="block text-codeat-silver text-sm font-semibold mb-2.5">Date of Birth</label>
+                    <input
+                      type="date"
+                      value={formData.date_of_birth}
+                      onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                      className="input-field"
+                      max={new Date().toISOString().split('T')[0]}
+                      title="Select employee's date of birth for birthday tracking"
+                    />
+                    <p className="text-codeat-gray text-xs mt-1.5">Required for birthday celebrations</p>
+                  </div>
+                  <div>
+                    <label className="block text-codeat-silver text-sm font-semibold mb-2.5">Joining Date</label>
+                    <input
+                      type="date"
+                      value={formData.joining_date}
+                      onChange={(e) => setFormData({ ...formData, joining_date: e.target.value })}
+                      className="input-field"
+                    />
+                  </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-codeat-muted/30">
                   <button
