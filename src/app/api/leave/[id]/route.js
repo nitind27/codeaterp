@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import pool from '../../../../lib/db.js';
-import { authorize } from '../../../../lib/auth.js';
-import { logActivity } from '../../../../lib/logger.js';
-import { sendLeaveApprovalEmail } from '../../../../lib/email.js';
+import pool from '../../../../../lib/db.js';
+import { authorize } from '../../../../../lib/auth.js';
+import { logActivity } from '../../../../../lib/logger.js';
+import { sendLeaveApprovalEmail } from '../../../../../lib/email.js';
 
 // Approve/Reject leave
 export async function PUT(req, { params }) {

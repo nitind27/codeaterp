@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import pool from '../../../../lib/db.js';
-import { authorize } from '../../../../lib/auth.js';
-import { logActivity } from '../../../../lib/logger.js';
+import pool from '../../../../../lib/db.js';
+import { authorize } from '../../../../../lib/auth.js';
+import { logActivity } from '../../../../../lib/logger.js';
 
 // Update attendance (Admin/HR only)
 export async function PUT(req, { params }) {

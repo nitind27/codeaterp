@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import pool from '../../../../lib/db.js';
-import { authorize, authenticate } from '../../../../lib/auth.js';
-import { logActivity } from '../../../../lib/logger.js';
+import pool from '../../../../../lib/db.js';
+import { authorize, authenticate } from '../../../../../lib/auth.js';
+import { logActivity } from '../../../../../lib/logger.js';
 
 // Get single employee
 export async function GET(req, { params }) {
