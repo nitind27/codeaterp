@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codeat ERP - API cURL Commands</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            line-height: 1.6;
+            padding: 40px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid #3b82f6;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            color: #0f172a;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+        
+        .base-url {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        
+        .base-url code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2rem;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 6px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            page-break-inside: avoid;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #1e293b, #334155);
+            color: white;
+            border-radius: 10px;
+        }
+        
+        .section-header .icon {
+            font-size: 1.5rem;
+        }
+        
+        .section-header h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .api-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        .api-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            background: #f1f5f9;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .method {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 4px;
+            color: white;
+        }
+        
+        .method.get { background: #22c55e; }
+        .method.post { background: #3b82f6; }
+        .method.put { background: #f59e0b; }
+        .method.delete { background: #ef4444; }
+        
+        .endpoint {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: #475569;
+        }
+        
+        .api-title {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-left: auto;
+        }
+        
+        .curl-box {
+            padding: 15px 20px;
+            background: #0f172a;
+            overflow-x: auto;
+        }
+        
+        .curl-box code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: #e2e8f0;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .curl-box .keyword { color: #22d3ee; }
+        .curl-box .string { color: #a5f3fc; }
+        .curl-box .flag { color: #fbbf24; }
+        .curl-box .url { color: #4ade80; }
+        
+        .note {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px 20px;
+            margin: 30px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .note strong {
+            color: #92400e;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 2px solid #e2e8f0;
+            color: #64748b;
+        }
+        
+        @media print {
+            body {
+                padding: 20px;
+                background: white;
+            }
+            
+            .section {
+                page-break-inside: avoid;
+            }
+            
+            .api-card {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Codeat ERP API</h1>
+            <p class="subtitle">Complete cURL Commands Reference</p>
+        </header>
+        
+        <div class="base-url">
+            <p style="margin-bottom: 8px; font-weight: 500;">Base URL</p>
+            <code>http://localhost:3000/api</code>
+        </div>
+        
+        <div class="note">
+            <strong>⚠️ Important:</strong> Replace <code>YOUR_TOKEN_HERE</code> with your actual JWT token obtained from the login API.
+        </div>
+
+        <!-- Authentication -->
+        <div class="section">
+            <div class="section-header">
+                <span class="icon">🔐</span>
+                <h2>Authentication APIs</h2>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method post">POST</span>
+                    <span class="endpoint">/api/auth/login</span>
+                    <span class="api-title">Login</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user@example.com", "password": "password123"}'</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/auth/me</span>
+                    <span class="api-title">Get Current User</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET http://localhost:3000/api/auth/me \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method post">POST</span>
+                    <span class="endpoint">/api/auth/register</span>
+                    <span class="api-title">Register User (Admin/HR)</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{"email": "newuser@example.com", "password": "password123", "role": "employee", "employeeData": {"first_name": "Jane", "last_name": "Smith", "phone": "1234567890", "department": "HR", "designation": "HR Manager"}}'</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- Employees -->
+        <div class="section">
+            <div class="section-header">
+                <span class="icon">👤</span>
+                <h2>Employee APIs</h2>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/employees</span>
+                    <span class="api-title">Get All Employees</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET "http://localhost:3000/api/employees" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/employees?filters</span>
+                    <span class="api-title">Get with Filters</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET "http://localhost:3000/api/employees?department=IT&status=active&search=john" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/employees/:id</span>
+                    <span class="api-title">Get Single Employee</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET http://localhost:3000/api/employees/1 \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method post">POST</span>
+                    <span class="endpoint">/api/employees</span>
+                    <span class="api-title">Create Employee</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X POST http://localhost:3000/api/employees \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{"first_name": "John", "last_name": "Doe", "email": "john@example.com", "phone": "9876543210", "department": "IT", "designation": "Developer"}'</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method put">PUT</span>
+                    <span class="endpoint">/api/employees/:id</span>
+                    <span class="api-title">Update Employee</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X PUT http://localhost:3000/api/employees/1 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{"first_name": "John", "last_name": "Doe Updated", "department": "IT"}'</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method delete">DELETE</span>
+                    <span class="endpoint">/api/employees/:id</span>
+                    <span class="api-title">Delete Employee</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X DELETE http://localhost:3000/api/employees/1 \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance -->
+        <div class="section">
+            <div class="section-header">
+                <span class="icon">📅</span>
+                <h2>Attendance APIs</h2>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/attendance</span>
+                    <span class="api-title">Get All Records</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET http://localhost:3000/api/attendance \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/attendance?filters</span>
+                    <span class="api-title">Get with Filters</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET "http://localhost:3000/api/attendance?employee_id=1&start_date=2024-01-01&end_date=2024-01-31&status=present" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method post">POST</span>
+                    <span class="endpoint">/api/attendance</span>
+                    <span class="api-title">Clock In</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X POST http://localhost:3000/api/attendance \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{"location": "Office"}'</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method put">PUT</span>
+                    <span class="endpoint">/api/attendance</span>
+                    <span class="api-title">Clock Out</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X PUT http://localhost:3000/api/attendance \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{"location": "Office"}'</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/attendance/:id</span>
+                    <span class="api-title">Get Single Record</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET http://localhost:3000/api/attendance/1 \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method put">PUT</span>
+                    <span class="endpoint">/api/attendance/:id</span>
+                    <span class="api-title">Update Record (Admin/HR)</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X PUT http://localhost:3000/api/attendance/1 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{"status": "present", "clock_in": "09:00", "clock_out": "18:00"}'</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leave -->
+        <div class="section">
+            <div class="section-header">
+                <span class="icon">🏖️</span>
+                <h2>Leave APIs</h2>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/leave</span>
+                    <span class="api-title">Get All Applications</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET http://localhost:3000/api/leave \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/leave?filters</span>
+                    <span class="api-title">Get with Filters</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET "http://localhost:3000/api/leave?employee_id=1&status=pending&start_date=2024-01-01&end_date=2024-12-31" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method post">POST</span>
+                    <span class="endpoint">/api/leave</span>
+                    <span class="api-title">Apply for Leave</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X POST http://localhost:3000/api/leave \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{"leaveTypeId": 1, "startDate": "2024-01-20", "endDate": "2024-01-22", "reason": "Personal work", "attachment": null}'</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/leave/:id</span>
+                    <span class="api-title">Get Single Application</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET http://localhost:3000/api/leave/1 \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method put">PUT</span>
+                    <span class="endpoint">/api/leave/:id</span>
+                    <span class="api-title">Approve/Reject (Admin/HR)</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X PUT http://localhost:3000/api/leave/1 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{"status": "approved", "rejectionReason": null}'</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/leave/balance</span>
+                    <span class="api-title">Get Leave Balance</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET http://localhost:3000/api/leave/balance \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/leave/types</span>
+                    <span class="api-title">Get Leave Types</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET http://localhost:3000/api/leave/types \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- Projects -->
+        <div class="section">
+            <div class="section-header">
+                <span class="icon">📁</span>
+                <h2>Project APIs</h2>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/projects</span>
+                    <span class="api-title">Get All Projects</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET http://localhost:3000/api/projects \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/projects?filters</span>
+                    <span class="api-title">Get with Filters</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET "http://localhost:3000/api/projects?status=active&manager_id=1&search=website" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method post">POST</span>
+                    <span class="endpoint">/api/projects</span>
+                    <span class="api-title">Create Project</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X POST http://localhost:3000/api/projects \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{"name": "Website Redesign", "description": "Redesign company website", "projectManagerId": 1, "clientName": "ABC Corp", "startDate": "2024-01-01", "endDate": "2024-06-30", "status": "planning", "priority": "high", "budget": 50000}'</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/projects/:id</span>
+                    <span class="api-title">Get Single Project</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET http://localhost:3000/api/projects/1 \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method put">PUT</span>
+                    <span class="endpoint">/api/projects/:id</span>
+                    <span class="api-title">Update Project</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X PUT http://localhost:3000/api/projects/1 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{"name": "Website Redesign Updated", "status": "active"}'</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method delete">DELETE</span>
+                    <span class="endpoint">/api/projects/:id</span>
+                    <span class="api-title">Delete Project</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X DELETE http://localhost:3000/api/projects/1 \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tasks -->
+        <div class="section">
+            <div class="section-header">
+                <span class="icon">✅</span>
+                <h2>Task APIs</h2>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/tasks</span>
+                    <span class="api-title">Get All Tasks</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET http://localhost:3000/api/tasks \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/tasks?filters</span>
+                    <span class="api-title">Get with Filters</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET "http://localhost:3000/api/tasks?project_id=1&assigned_to=2&status=in_progress&priority=high" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method post">POST</span>
+                    <span class="endpoint">/api/tasks</span>
+                    <span class="api-title">Create Task</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X POST http://localhost:3000/api/tasks \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{"projectId": 1, "title": "Design homepage", "description": "Create new homepage design", "assignedTo": 2, "status": "todo", "priority": "high", "dueDate": "2024-01-25T10:00:00Z", "estimatedHours": 8}'</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/tasks/:id</span>
+                    <span class="api-title">Get Single Task</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET http://localhost:3000/api/tasks/1 \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method put">PUT</span>
+                    <span class="endpoint">/api/tasks/:id</span>
+                    <span class="api-title">Update Task</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X PUT http://localhost:3000/api/tasks/1 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{"title": "Design homepage - Updated", "status": "in_progress"}'</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method delete">DELETE</span>
+                    <span class="endpoint">/api/tasks/:id</span>
+                    <span class="api-title">Delete Task</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X DELETE http://localhost:3000/api/tasks/1 \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- Complaints -->
+        <div class="section">
+            <div class="section-header">
+                <span class="icon">📣</span>
+                <h2>Complaint APIs</h2>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/complaints</span>
+                    <span class="api-title">Get All Complaints</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET http://localhost:3000/api/complaints \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/complaints?filters</span>
+                    <span class="api-title">Get with Filters</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET "http://localhost:3000/api/complaints?status=open&category=workplace&priority=high" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method post">POST</span>
+                    <span class="endpoint">/api/complaints</span>
+                    <span class="api-title">Create Complaint</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X POST http://localhost:3000/api/complaints \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{"subject": "Workplace Issue", "description": "Description of complaint", "category": "workplace", "priority": "medium"}'</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- Achievements -->
+        <div class="section">
+            <div class="section-header">
+                <span class="icon">🎖️</span>
+                <h2>Achievement APIs</h2>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/achievements</span>
+                    <span class="api-title">Get All Achievements</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET http://localhost:3000/api/achievements \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method post">POST</span>
+                    <span class="endpoint">/api/achievements</span>
+                    <span class="api-title">Create Achievement</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X POST http://localhost:3000/api/achievements \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{"employeeId": 1, "title": "Employee of the Month", "description": "Outstanding performance", "date": "2024-01-15"}'</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/achievements/:id</span>
+                    <span class="api-title">Get Single Achievement</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET http://localhost:3000/api/achievements/1 \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method put">PUT</span>
+                    <span class="endpoint">/api/achievements/:id</span>
+                    <span class="api-title">Update Achievement</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X PUT http://localhost:3000/api/achievements/1 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{"title": "Employee of the Year"}'</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method delete">DELETE</span>
+                    <span class="endpoint">/api/achievements/:id</span>
+                    <span class="api-title">Delete Achievement</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X DELETE http://localhost:3000/api/achievements/1 \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- Anniversaries -->
+        <div class="section">
+            <div class="section-header">
+                <span class="icon">🎂</span>
+                <h2>Anniversary APIs</h2>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/anniversaries</span>
+                    <span class="api-title">Get All Anniversaries</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET http://localhost:3000/api/anniversaries \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method post">POST</span>
+                    <span class="endpoint">/api/anniversaries</span>
+                    <span class="api-title">Create Anniversary</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X POST http://localhost:3000/api/anniversaries \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{"employeeId": 1, "type": "work_anniversary", "date": "2024-01-15"}'</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- Holidays -->
+        <div class="section">
+            <div class="section-header">
+                <span class="icon">📆</span>
+                <h2>Holiday APIs</h2>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/holidays</span>
+                    <span class="api-title">Get All Holidays</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET http://localhost:3000/api/holidays \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method post">POST</span>
+                    <span class="endpoint">/api/holidays</span>
+                    <span class="api-title">Create Holiday</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X POST http://localhost:3000/api/holidays \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{"name": "Diwali", "date": "2024-11-01", "type": "public"}'</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/holidays/:id</span>
+                    <span class="api-title">Get Single Holiday</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET http://localhost:3000/api/holidays/1 \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method put">PUT</span>
+                    <span class="endpoint">/api/holidays/:id</span>
+                    <span class="api-title">Update Holiday</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X PUT http://localhost:3000/api/holidays/1 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{"name": "Diwali Updated", "date": "2024-11-02"}'</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method delete">DELETE</span>
+                    <span class="endpoint">/api/holidays/:id</span>
+                    <span class="api-title">Delete Holiday</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X DELETE http://localhost:3000/api/holidays/1 \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interviews -->
+        <div class="section">
+            <div class="section-header">
+                <span class="icon">🎤</span>
+                <h2>Interview APIs</h2>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/interviews</span>
+                    <span class="api-title">Get All Interviews</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET http://localhost:3000/api/interviews \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method post">POST</span>
+                    <span class="endpoint">/api/interviews</span>
+                    <span class="api-title">Create Interview</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X POST http://localhost:3000/api/interviews \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{"candidateName": "John Doe", "position": "Developer", "date": "2024-01-20", "time": "10:00", "interviewerId": 1, "status": "scheduled"}'</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- Channels -->
+        <div class="section">
+            <div class="section-header">
+                <span class="icon">💬</span>
+                <h2>Channel/Chat APIs</h2>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/channels</span>
+                    <span class="api-title">Get All Channels</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET http://localhost:3000/api/channels \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method post">POST</span>
+                    <span class="endpoint">/api/channels</span>
+                    <span class="api-title">Create Channel</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X POST http://localhost:3000/api/channels \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{"name": "General", "description": "General discussion channel", "members": [1, 2, 3]}'</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/channels/:id</span>
+                    <span class="api-title">Get Single Channel</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET http://localhost:3000/api/channels/1 \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method put">PUT</span>
+                    <span class="endpoint">/api/channels/:id</span>
+                    <span class="api-title">Update Channel</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X PUT http://localhost:3000/api/channels/1 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{"name": "General Updated"}'</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method delete">DELETE</span>
+                    <span class="endpoint">/api/channels/:id</span>
+                    <span class="api-title">Delete Channel</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X DELETE http://localhost:3000/api/channels/1 \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div class="section">
+            <div class="section-header">
+                <span class="icon">✉️</span>
+                <h2>Message APIs</h2>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint">/api/messages</span>
+                    <span class="api-title">Get Messages</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X GET "http://localhost:3000/api/messages?channelId=1" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</code>
+                </div>
+            </div>
+            
+            <div class="api-card">
+                <div class="api-header">
+                    <span class="method post">POST</span>
+                    <span class="endpoint">/api/messages</span>
+                    <span class="api-title">Send Message</span>
+                </div>
+                <div class="curl-box">
+                    <code>curl -X POST http://localhost:3000/api/messages \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{"channelId": 1, "content": "Hello everyone!"}'</code>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p><strong>Codeat Infotech ERP</strong> - API Documentation</p>
+            <p style="margin-top: 8px; font-size: 0.9rem;">Generated on December 2024</p>
+        </footer>
+    </div>
+</body>
+</html>
+

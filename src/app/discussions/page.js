@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
+import LogoLoader from '../../components/LogoLoader';
 import Chat from '../../components/Chat';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
@@ -112,11 +113,7 @@ export default function DiscussionsPage() {
   };
 
   if (loading || !user) {
-    return (
-      <div className="min-h-screen bg-codeat-dark flex items-center justify-center">
-        <div className="text-codeat-accent text-xl">Loading...</div>
-      </div>
-    );
+    return <LogoLoader />;
   }
 
   return (
@@ -130,7 +127,7 @@ export default function DiscussionsPage() {
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="w-full sm:w-auto px-6 py-3.5 bg-gradient-to-r from-codeat-accent to-codeat-teal text-white rounded-xl hover:from-codeat-accent/90 hover:to-codeat-teal/90 transition-all duration-300 font-semibold shadow-lg shadow-codeat-accent/30 hover:shadow-codeat-accent/50 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-6 py-3.5 bg-gradient-to-r from-codeat-teal to-codeat-accent text-white rounded-xl hover:from-codeat-teal/90 hover:to-codeat-accent/90 transition-all duration-300 font-semibold shadow-lg shadow-codeat-teal/30 hover:shadow-codeat-teal/50 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -268,7 +265,7 @@ export default function DiscussionsPage() {
                 <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-codeat-muted/30">
                   <button
                     type="submit"
-                    className="flex-1 px-6 py-3.5 bg-gradient-to-r from-codeat-accent to-codeat-teal text-white rounded-xl hover:from-codeat-accent/90 hover:to-codeat-teal/90 transition-all duration-300 font-semibold shadow-lg shadow-codeat-accent/30 hover:shadow-codeat-accent/50 hover:scale-105 active:scale-95"
+                    className="flex-1 px-6 py-3.5 bg-gradient-to-r from-codeat-teal to-codeat-accent text-white rounded-xl hover:from-codeat-teal/90 hover:to-codeat-accent/90 transition-all duration-300 font-semibold shadow-lg shadow-codeat-teal/30 hover:shadow-codeat-teal/50 hover:scale-105 active:scale-95"
                   >
                     Create Channel
                   </button>

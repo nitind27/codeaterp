@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import LogoLoader from '../components/LogoLoader';
 
 export default function Home() {
   const router = useRouter();
@@ -15,9 +16,5 @@ export default function Home() {
     }
   }, []);
 
-  return (
-    <div className="min-h-screen bg-codeat-dark flex items-center justify-center">
-      <div className="text-codeat-accent text-xl">Loading...</div>
-    </div>
-  );
+  return <LogoLoader />;
 }

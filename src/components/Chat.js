@@ -241,7 +241,7 @@ export default function Chat({ channel, user, onChannelChange }) {
                   <div
                     className={`rounded-2xl px-4 py-3 ${
                       isOwnMessage
-                        ? 'bg-gradient-to-r from-codeat-accent to-codeat-teal text-white'
+                        ? 'bg-gradient-to-r from-codeat-teal to-codeat-accent text-white'
                         : 'bg-codeat-mid text-codeat-silver border border-codeat-muted/30'
                     }`}
                   >
@@ -287,7 +287,7 @@ export default function Chat({ channel, user, onChannelChange }) {
           <button
             type="submit"
             disabled={!newMessage.trim() || !socket}
-            className="px-6 py-3 bg-gradient-to-r from-codeat-accent to-codeat-teal text-white rounded-xl hover:from-codeat-accent/90 hover:to-codeat-teal/90 transition-all duration-300 font-semibold shadow-lg shadow-codeat-accent/30 hover:shadow-codeat-accent/50 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
+            className="px-6 py-3 bg-gradient-to-r from-codeat-teal to-codeat-accent text-white rounded-xl hover:from-codeat-teal/90 hover:to-codeat-accent/90 transition-all duration-300 font-semibold shadow-lg shadow-codeat-teal/30 hover:shadow-codeat-teal/50 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Layout from '../../components/Layout';
+import LogoLoader from '../../components/LogoLoader';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
@@ -19,7 +20,7 @@ export default function AchievementsPage() {
     title: '',
     description: '',
     awardedOn: '',
-    badgeColor: '#22d3ee',
+    badgeColor: '#1A656D',
     points: 10
   });
 
@@ -109,7 +110,7 @@ export default function AchievementsPage() {
           title: '',
           description: '',
           awardedOn: '',
-          badgeColor: '#22d3ee',
+          badgeColor: '#1A656D',
           points: 10
         });
         await loadAchievements(filterEmployeeId);
@@ -129,11 +130,7 @@ export default function AchievementsPage() {
   }, [achievements, filterEmployeeId]);
 
   if (loading || !user) {
-    return (
-      <div className="min-h-screen bg-codeat-dark flex items-center justify-center">
-        <div className="text-codeat-accent text-xl">Loading achievements...</div>
-      </div>
-    );
+    return <LogoLoader />;
   }
 
   return (
@@ -148,7 +145,7 @@ export default function AchievementsPage() {
           {isManager && (
             <button
               onClick={() => setShowForm(true)}
-              className="w-full sm:w-auto rounded-2xl border border-codeat-accent/40 bg-gradient-to-r from-codeat-accent to-codeat-teal px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-codeat-teal/30 hover:scale-[1.02] active:scale-95"
+              className="w-full sm:w-auto rounded-2xl border border-codeat-teal/40 bg-gradient-to-r from-codeat-teal to-codeat-accent px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-codeat-teal/40 hover:scale-[1.02] active:scale-95"
             >
               + Add Achievement
             </button>
@@ -210,7 +207,7 @@ export default function AchievementsPage() {
                       <div className="flex items-center gap-3">
                         <div
                           className="h-12 w-12 rounded-2xl border border-white/20"
-                          style={{ backgroundColor: achievement.badgeColor || '#22d3ee' }}
+                          style={{ backgroundColor: achievement.badgeColor || '#1A656D' }}
                         />
                         <div>
                           <p className="text-sm uppercase tracking-[0.35em] text-codeat-gray">Awarded to</p>
@@ -343,7 +340,7 @@ export default function AchievementsPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="rounded-2xl bg-gradient-to-r from-codeat-accent to-codeat-teal px-6 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-codeat-teal/30 hover:scale-[1.01]"
+                  className="rounded-2xl bg-gradient-to-r from-codeat-teal to-codeat-accent px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-codeat-teal/40 hover:scale-[1.01]"
                 >
                   {submitting ? 'Saving...' : 'Publish Achievement'}
                 </button>

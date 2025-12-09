@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
+import LogoLoader from '../../components/LogoLoader';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
@@ -241,11 +242,7 @@ export default function AttendancePage() {
   };
 
   if (loading || !user) {
-    return (
-      <div className="min-h-screen bg-codeat-dark flex items-center justify-center">
-        <div className="text-codeat-accent text-xl">Loading...</div>
-      </div>
-    );
+    return <LogoLoader />;
   }
 
   const canClockIn = !todayAttendance || !todayAttendance.clockIn;
@@ -369,7 +366,7 @@ export default function AttendancePage() {
               <button
                 onClick={handleClockIn}
                 disabled={clocking}
-                className="px-8 py-4 bg-gradient-to-r from-codeat-accent to-codeat-teal text-white rounded-xl hover:from-codeat-accent/90 hover:to-codeat-teal/90 transition-all duration-300 font-semibold shadow-lg shadow-codeat-accent/30 hover:shadow-codeat-accent/50 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2 mx-auto"
+                className="px-8 py-4 bg-gradient-to-r from-codeat-teal to-codeat-accent text-white rounded-xl hover:from-codeat-teal/90 hover:to-codeat-accent/90 transition-all duration-300 font-semibold shadow-lg shadow-codeat-teal/30 hover:shadow-codeat-teal/50 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2 mx-auto"
               >
                 {clocking ? (
                   <>

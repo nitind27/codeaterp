@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
+import LogoLoader from '../../components/LogoLoader';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
@@ -50,11 +51,7 @@ export default function TasksPage() {
     : tasks.filter(t => t.status === filter);
 
   if (loading || !user) {
-    return (
-      <div className="min-h-screen bg-codeat-dark flex items-center justify-center">
-        <div className="text-codeat-accent text-xl">Loading...</div>
-      </div>
-    );
+    return <LogoLoader />;
   }
 
   const getStatusColor = (status) => {
@@ -85,7 +82,7 @@ export default function TasksPage() {
               onClick={() => setFilter(status)}
               className={`px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 ${
                 filter === status
-                  ? 'bg-gradient-to-r from-codeat-accent to-codeat-teal text-white shadow-lg shadow-codeat-accent/30 scale-105'
+                  ? 'bg-gradient-to-r from-codeat-teal to-codeat-accent text-white shadow-lg shadow-codeat-teal/30 scale-105'
                   : 'bg-codeat-mid text-codeat-silver hover:bg-codeat-muted border border-codeat-muted/30 hover:scale-105 active:scale-95'
               }`}
             >

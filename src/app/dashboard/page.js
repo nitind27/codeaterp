@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
+import LogoLoader from '../../components/LogoLoader';
 import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
@@ -121,24 +122,20 @@ export default function DashboardPage() {
   };
 
   if (loading || !user) {
-    return (
-      <div className="min-h-screen bg-codeat-dark flex items-center justify-center">
-        <div className="text-codeat-accent text-xl">Loading...</div>
-      </div>
-    );
+    return <LogoLoader />;
   }
 
-  const StatCard = ({ title, value, icon, color = 'codeat-accent', gradient }) => (
-    <div className="bg-codeat-mid rounded-2xl p-6 lg:p-8 border border-codeat-muted/30 shadow-lg hover:shadow-xl transition-all duration-300 card-hover group">
+  const StatCard = ({ title, value, icon, gradient }) => (
+    <div className="bg-[#0A2A2D] rounded-2xl p-6 lg:p-8 border border-[#12474c]/30 shadow-lg hover:shadow-xl transition-all duration-300 card-hover group hover:border-[#1A656D]/40">
       <div className="flex items-center justify-between mb-4">
-        <div className={`w-14 h-14 rounded-xl ${gradient || 'bg-gradient-to-br from-codeat-accent to-codeat-teal'} flex items-center justify-center text-2xl shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+        <div className={`w-14 h-14 rounded-xl ${gradient || 'bg-gradient-to-br from-[#1A656D] to-[#31747c]'} flex items-center justify-center text-2xl shadow-lg shadow-[#1A656D]/30 group-hover:scale-110 transition-transform duration-300`}>
           {icon}
         </div>
       </div>
       <div>
-        <p className="text-codeat-gray text-sm font-medium mb-2 uppercase tracking-wide">{title}</p>
-        <p className={`text-4xl lg:text-5xl font-bold text-${color} mb-1`}>{value}</p>
-        <div className="h-1 w-12 bg-gradient-to-r from-codeat-accent to-codeat-teal rounded-full mt-3"></div>
+        <p className="text-[#8db2b6] text-sm font-medium mb-2 uppercase tracking-wide">{title}</p>
+        <p className="text-4xl lg:text-5xl font-bold text-[#F6FBFB] mb-1">{value}</p>
+        <div className="h-1 w-12 bg-gradient-to-r from-[#1A656D] to-[#31747c] rounded-full mt-3"></div>
       </div>
     </div>
   );
@@ -168,8 +165,8 @@ export default function DashboardPage() {
                 🎂
               </div>
               <div>
-                <h3 className="text-codeat-silver font-semibold text-lg">{name}</h3>
-                <p className="text-codeat-gray text-sm">{department || 'General'}</p>
+                <h3 className="text-[#F6FBFB] font-semibold text-lg">{name}</h3>
+                <p className="text-[#8db2b6] text-sm">{department || 'General'}</p>
               </div>
             </div>
             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
@@ -180,9 +177,9 @@ export default function DashboardPage() {
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-codeat-gray text-xs uppercase tracking-wide mb-1">Birthday</p>
-              <p className="text-codeat-silver font-medium">{formatDate(date)}</p>
-              {age && <p className="text-codeat-gray text-sm mt-1">Turning {age} years old</p>}
+              <p className="text-[#8db2b6] text-xs uppercase tracking-wide mb-1">Birthday</p>
+              <p className="text-[#F6FBFB] font-medium">{formatDate(date)}</p>
+              {age && <p className="text-[#8db2b6] text-sm mt-1">Turning {age} years old</p>}
             </div>
             <div className="text-3xl opacity-50">🎉</div>
           </div>
@@ -190,29 +187,29 @@ export default function DashboardPage() {
       );
     } else if (type === 'work_anniversary') {
       return (
-        <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-2xl p-5 border border-blue-500/30 shadow-lg hover:shadow-xl transition-all duration-300 card-hover">
+        <div className="bg-gradient-to-br from-[#1A656D]/30 to-[#31747c]/30 rounded-2xl p-5 border border-[#1A656D]/40 shadow-lg hover:shadow-xl transition-all duration-300 card-hover">
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-2xl shadow-lg">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#1A656D] to-[#31747c] flex items-center justify-center text-2xl shadow-lg shadow-[#1A656D]/40">
                 🎊
               </div>
               <div>
-                <h3 className="text-codeat-silver font-semibold text-lg">{name}</h3>
-                <p className="text-codeat-gray text-sm">{designation || department || 'Employee'}</p>
+                <h3 className="text-[#F6FBFB] font-semibold text-lg">{name}</h3>
+                <p className="text-[#8db2b6] text-sm">{designation || department || 'Employee'}</p>
               </div>
             </div>
             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-              isToday ? 'bg-blue-500 text-white' : 'bg-blue-500/30 text-blue-300'
+              isToday ? 'bg-[#1A656D] text-white' : 'bg-[#1A656D]/30 text-[#5f9399]'
             }`}>
               {timeText}
             </span>
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-codeat-gray text-xs uppercase tracking-wide mb-1">Work Anniversary</p>
-              <p className="text-codeat-silver font-medium">{formatDate(date)}</p>
+              <p className="text-[#8db2b6] text-xs uppercase tracking-wide mb-1">Work Anniversary</p>
+              <p className="text-[#F6FBFB] font-medium">{formatDate(date)}</p>
               {yearsOfService !== null && (
-                <p className="text-codeat-gray text-sm mt-1">{yearsOfService} {yearsOfService === 1 ? 'year' : 'years'} of service</p>
+                <p className="text-[#8db2b6] text-sm mt-1">{yearsOfService} {yearsOfService === 1 ? 'year' : 'years'} of service</p>
               )}
             </div>
             <div className="text-3xl opacity-50">🏆</div>
@@ -228,8 +225,8 @@ export default function DashboardPage() {
                 🏢
               </div>
               <div>
-                <h3 className="text-codeat-silver font-semibold text-lg">Company Anniversary</h3>
-                <p className="text-codeat-gray text-sm">Celebrating together</p>
+                <h3 className="text-[#F6FBFB] font-semibold text-lg">Company Anniversary</h3>
+                <p className="text-[#8db2b6] text-sm">Celebrating together</p>
               </div>
             </div>
             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
@@ -240,10 +237,10 @@ export default function DashboardPage() {
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-codeat-gray text-xs uppercase tracking-wide mb-1">Anniversary Date</p>
-              <p className="text-codeat-silver font-medium">{formatDate(date)}</p>
+              <p className="text-[#8db2b6] text-xs uppercase tracking-wide mb-1">Anniversary Date</p>
+              <p className="text-[#F6FBFB] font-medium">{formatDate(date)}</p>
               {yearsOfService !== null && (
-                <p className="text-codeat-gray text-sm mt-1">{yearsOfService} {yearsOfService === 1 ? 'year' : 'years'} milestone</p>
+                <p className="text-[#8db2b6] text-sm mt-1">{yearsOfService} {yearsOfService === 1 ? 'year' : 'years'} milestone</p>
               )}
             </div>
             <div className="text-3xl opacity-50">🎈</div>
@@ -258,13 +255,13 @@ export default function DashboardPage() {
     <Layout user={user}>
       <div className="space-y-6 lg:space-y-8">
         {/* Welcome Section */}
-        <div className="bg-gradient-to-r from-codeat-mid to-codeat-mid/80 rounded-2xl p-6 lg:p-8 border border-codeat-muted/30 shadow-xl">
+        <div className="bg-gradient-to-r from-[#0A2A2D] to-[#0d3337] rounded-2xl p-6 lg:p-8 border border-[#12474c]/30 shadow-xl">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-3xl lg:text-4xl font-bold text-codeat-silver mb-2">
+              <h1 className="text-3xl lg:text-4xl font-bold text-[#F6FBFB] mb-2">
                 Welcome back, {user.employee?.firstName || 'User'}! 👋
               </h1>
-              <p className="text-codeat-gray text-lg">Here's what's happening with your account today.</p>
+              <p className="text-[#8db2b6] text-lg">Here's what's happening with your account today.</p>
             </div>
             <div className="text-6xl opacity-20">📊</div>
           </div>
@@ -277,11 +274,11 @@ export default function DashboardPage() {
               <StatCard title="Total Employees" value={stats.totalEmployees || 0} icon="👥" gradient="bg-gradient-to-br from-blue-500 to-blue-600" />
               <StatCard title="Present Today" value={stats.presentToday || 0} icon="✅" gradient="bg-gradient-to-br from-green-500 to-green-600" />
               <StatCard title="Pending Leaves" value={stats.pendingLeaves || 0} icon="📅" gradient="bg-gradient-to-br from-yellow-500 to-yellow-600" />
-              <StatCard title="Active Projects" value={stats.activeProjects || 0} icon="📁" gradient="bg-gradient-to-br from-purple-500 to-purple-600" />
+              <StatCard title="Active Projects" value={stats.activeProjects || 0} icon="📁" gradient="bg-gradient-to-br from-[#1A656D] to-[#31747c]" />
             </>
           ) : user.role === 'project_manager' ? (
             <>
-              <StatCard title="Active Projects" value={stats.activeProjects || 0} icon="📁" gradient="bg-gradient-to-br from-purple-500 to-purple-600" />
+              <StatCard title="Active Projects" value={stats.activeProjects || 0} icon="📁" gradient="bg-gradient-to-br from-[#1A656D] to-[#31747c]" />
               <StatCard title="Total Tasks" value={stats.totalTasks || 0} icon="✅" gradient="bg-gradient-to-br from-blue-500 to-blue-600" />
               <StatCard title="Pending Tasks" value={stats.pendingTasks || 0} icon="⏳" gradient="bg-gradient-to-br from-yellow-500 to-yellow-600" />
               <StatCard title="Completed" value={stats.completedTasks || 0} icon="🎉" gradient="bg-gradient-to-br from-green-500 to-green-600" />
@@ -290,7 +287,7 @@ export default function DashboardPage() {
             <>
               <StatCard title="Attendance" value={stats.attendanceThisMonth || 0} icon="⏰" gradient="bg-gradient-to-br from-blue-500 to-blue-600" />
               <StatCard title="Pending Leaves" value={stats.pendingLeaves || 0} icon="📅" gradient="bg-gradient-to-br from-yellow-500 to-yellow-600" />
-              <StatCard title="My Tasks" value={stats.myTasks || 0} icon="✅" gradient="bg-gradient-to-br from-purple-500 to-purple-600" />
+              <StatCard title="My Tasks" value={stats.myTasks || 0} icon="✅" gradient="bg-gradient-to-br from-[#1A656D] to-[#31747c]" />
               <StatCard title="Completed" value={stats.completedTasks || 0} icon="🎉" gradient="bg-gradient-to-br from-green-500 to-green-600" />
             </>
           )}
@@ -298,11 +295,11 @@ export default function DashboardPage() {
 
         {/* Upcoming Celebrations */}
         {(anniversaries.birthdays.length > 0 || anniversaries.workAnniversaries.length > 0 || anniversaries.companyAnniversary) && (
-          <div className="bg-codeat-mid rounded-2xl p-6 lg:p-8 border border-codeat-muted/30 shadow-xl">
+          <div className="bg-[#0A2A2D] rounded-2xl p-6 lg:p-8 border border-[#12474c]/30 shadow-xl">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-2xl font-bold text-codeat-silver mb-1">Upcoming Celebrations</h2>
-                <p className="text-codeat-gray text-sm">Birthdays, anniversaries & milestones in the next 3 days</p>
+                <h2 className="text-2xl font-bold text-[#F6FBFB] mb-1">Upcoming Celebrations</h2>
+                <p className="text-[#8db2b6] text-sm">Birthdays, anniversaries & milestones in the next 3 days</p>
               </div>
               <div className="text-4xl opacity-30">🎉</div>
             </div>
@@ -348,48 +345,48 @@ export default function DashboardPage() {
         )}
 
         {/* Quick Actions */}
-        <div className="bg-codeat-mid rounded-2xl p-6 lg:p-8 border border-codeat-muted/30 shadow-xl">
+        <div className="bg-[#0A2A2D] rounded-2xl p-6 lg:p-8 border border-[#12474c]/30 shadow-xl">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-codeat-silver">Quick Actions</h2>
-            <div className="h-1 flex-1 mx-4 bg-codeat-muted/30 rounded-full"></div>
+            <h2 className="text-2xl font-bold text-[#F6FBFB]">Quick Actions</h2>
+            <div className="h-1 flex-1 mx-4 bg-[#12474c]/30 rounded-full"></div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {user.role === 'employee' || user.role === 'intern' ? (
               <>
-                <a href="/attendance" className="group p-6 bg-gradient-to-br from-codeat-teal to-codeat-teal/80 rounded-xl text-center hover:from-codeat-teal/90 hover:to-codeat-teal/70 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border border-codeat-muted/30">
+                <a href="/attendance" className="group p-6 bg-gradient-to-br from-[#1A656D] to-[#175b62] rounded-xl text-center hover:from-[#1A656D]/90 hover:to-[#175b62]/90 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border border-[#31747c]/30">
                   <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">⏰</div>
-                  <div className="text-codeat-silver font-semibold text-sm">Clock In/Out</div>
+                  <div className="text-[#F6FBFB] font-semibold text-sm">Clock In/Out</div>
                 </a>
-                <a href="/leave" className="group p-6 bg-gradient-to-br from-codeat-teal to-codeat-teal/80 rounded-xl text-center hover:from-codeat-teal/90 hover:to-codeat-teal/70 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border border-codeat-muted/30">
+                <a href="/leave" className="group p-6 bg-gradient-to-br from-[#1A656D] to-[#175b62] rounded-xl text-center hover:from-[#1A656D]/90 hover:to-[#175b62]/90 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border border-[#31747c]/30">
                   <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">📅</div>
-                  <div className="text-codeat-silver font-semibold text-sm">Apply Leave</div>
+                  <div className="text-[#F6FBFB] font-semibold text-sm">Apply Leave</div>
                 </a>
-                <a href="/tasks" className="group p-6 bg-gradient-to-br from-codeat-teal to-codeat-teal/80 rounded-xl text-center hover:from-codeat-teal/90 hover:to-codeat-teal/70 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border border-codeat-muted/30">
+                <a href="/tasks" className="group p-6 bg-gradient-to-br from-[#1A656D] to-[#175b62] rounded-xl text-center hover:from-[#1A656D]/90 hover:to-[#175b62]/90 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border border-[#31747c]/30">
                   <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">✅</div>
-                  <div className="text-codeat-silver font-semibold text-sm">My Tasks</div>
+                  <div className="text-[#F6FBFB] font-semibold text-sm">My Tasks</div>
                 </a>
-                <a href="/profile" className="group p-6 bg-gradient-to-br from-codeat-teal to-codeat-teal/80 rounded-xl text-center hover:from-codeat-teal/90 hover:to-codeat-teal/70 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border border-codeat-muted/30">
+                <a href="/profile" className="group p-6 bg-gradient-to-br from-[#1A656D] to-[#175b62] rounded-xl text-center hover:from-[#1A656D]/90 hover:to-[#175b62]/90 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border border-[#31747c]/30">
                   <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">👤</div>
-                  <div className="text-codeat-silver font-semibold text-sm">Profile</div>
+                  <div className="text-[#F6FBFB] font-semibold text-sm">Profile</div>
                 </a>
               </>
             ) : (
               <>
-                <a href="/employees" className="group p-6 bg-gradient-to-br from-codeat-teal to-codeat-teal/80 rounded-xl text-center hover:from-codeat-teal/90 hover:to-codeat-teal/70 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border border-codeat-muted/30">
+                <a href="/employees" className="group p-6 bg-gradient-to-br from-[#1A656D] to-[#175b62] rounded-xl text-center hover:from-[#1A656D]/90 hover:to-[#175b62]/90 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border border-[#31747c]/30">
                   <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">👥</div>
-                  <div className="text-codeat-silver font-semibold text-sm">Employees</div>
+                  <div className="text-[#F6FBFB] font-semibold text-sm">Employees</div>
                 </a>
-                <a href="/projects" className="group p-6 bg-gradient-to-br from-codeat-teal to-codeat-teal/80 rounded-xl text-center hover:from-codeat-teal/90 hover:to-codeat-teal/70 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border border-codeat-muted/30">
+                <a href="/projects" className="group p-6 bg-gradient-to-br from-[#1A656D] to-[#175b62] rounded-xl text-center hover:from-[#1A656D]/90 hover:to-[#175b62]/90 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border border-[#31747c]/30">
                   <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">📁</div>
-                  <div className="text-codeat-silver font-semibold text-sm">Projects</div>
+                  <div className="text-[#F6FBFB] font-semibold text-sm">Projects</div>
                 </a>
-                <a href="/reports" className="group p-6 bg-gradient-to-br from-codeat-teal to-codeat-teal/80 rounded-xl text-center hover:from-codeat-teal/90 hover:to-codeat-teal/70 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border border-codeat-muted/30">
+                <a href="/reports" className="group p-6 bg-gradient-to-br from-[#1A656D] to-[#175b62] rounded-xl text-center hover:from-[#1A656D]/90 hover:to-[#175b62]/90 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border border-[#31747c]/30">
                   <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">📈</div>
-                  <div className="text-codeat-silver font-semibold text-sm">Reports</div>
+                  <div className="text-[#F6FBFB] font-semibold text-sm">Reports</div>
                 </a>
-                <a href="/settings" className="group p-6 bg-gradient-to-br from-codeat-teal to-codeat-teal/80 rounded-xl text-center hover:from-codeat-teal/90 hover:to-codeat-teal/70 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border border-codeat-muted/30">
+                <a href="/settings" className="group p-6 bg-gradient-to-br from-[#1A656D] to-[#175b62] rounded-xl text-center hover:from-[#1A656D]/90 hover:to-[#175b62]/90 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border border-[#31747c]/30">
                   <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">⚙️</div>
-                  <div className="text-codeat-silver font-semibold text-sm">Settings</div>
+                  <div className="text-[#F6FBFB] font-semibold text-sm">Settings</div>
                 </a>
               </>
             )}
@@ -399,4 +396,3 @@ export default function DashboardPage() {
     </Layout>
   );
 }
-

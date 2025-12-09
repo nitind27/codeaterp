@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
+import LogoLoader from '../../components/LogoLoader';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
@@ -24,11 +25,7 @@ export default function ReportsPage() {
   }, []);
 
   if (loading || !user) {
-    return (
-      <div className="min-h-screen bg-codeat-dark flex items-center justify-center">
-        <div className="text-codeat-accent text-xl">Loading...</div>
-      </div>
-    );
+    return <LogoLoader />;
   }
 
   const reports = [
