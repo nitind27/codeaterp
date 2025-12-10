@@ -7,8 +7,8 @@ import toast from 'react-hot-toast';
 
 // Office Location Configuration (Surat, Gujarat)
 const OFFICE_LOCATION = {
-  latitude: 21.137,
-  longitude: 72.844,
+  latitude: 21.17,
+  longitude: 72.79,
   radiusInKm: 0.5 // 500 meters radius
 };
 
