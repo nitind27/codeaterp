@@ -5,6 +5,26 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 
+// Office Location Configuration (Surat, Gujarat)
+const OFFICE_LOCATION = {
+  latitude: 21.137,
+  longitude: 72.844,
+  radiusInKm: 0.5 // 500 meters radius
+};
+
+// Calculate distance between two coordinates using Haversine formula
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c; // Distance in kilometers
+};
+
 export default function LoginPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -14,10 +34,78 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
+  const [locationStatus, setLocationStatus] = useState('idle'); // idle, loading, success, error, denied
 
   useEffect(() => {
     setMounted(true);
+    
+    // Check if redirected due to session expiry
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('sessionExpired') === 'true') {
+        setError('You have been logged out because you logged in from another device.');
+        toast.error('Session expired! Logged in from another device.', { duration: 5000 });
+        // Clean up the URL
+        window.history.replaceState({}, document.title, '/login');
+      }
+    }
   }, []);
+
+  // Get user's current location
+  const getUserLocation = () => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation is not supported by your browser'));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const location = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy
+          };
+          resolve(location);
+        },
+        (error) => {
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              reject(new Error('Location access denied. Please enable location to login.'));
+              break;
+            case error.POSITION_UNAVAILABLE:
+              reject(new Error('Location information unavailable. Please try again.'));
+              break;
+            case error.TIMEOUT:
+              reject(new Error('Location request timed out. Please try again.'));
+              break;
+            default:
+              reject(new Error('Unable to get your location. Please try again.'));
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0
+        }
+      );
+    });
+  };
+
+  // Check if user is within office radius
+  const isWithinOfficeRadius = (userLat, userLon) => {
+    const distance = calculateDistance(
+      userLat,
+      userLon,
+      OFFICE_LOCATION.latitude,
+      OFFICE_LOCATION.longitude
+    );
+    return {
+      isWithin: distance <= OFFICE_LOCATION.radiusInKm,
+      distance: distance.toFixed(2)
+    };
+  };
 
   const validateEmail = (email) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -79,25 +167,61 @@ export default function LoginPage() {
     if (hasErrors) return;
 
     setLoading(true);
+    setLocationStatus('loading');
 
     try {
+      // First, get user's location
+      let location = null;
+      try {
+        location = await getUserLocation();
+        setUserLocation(location);
+        setLocationStatus('success');
+      } catch (locationError) {
+        // Location might fail, but we'll let the server decide if it's required
+        console.log('Location error:', locationError.message);
+        setLocationStatus('error');
+      }
+
+      // Prepare login data with location
+      const loginData = {
+        ...formData,
+        location: location ? {
+          latitude: location.latitude,
+          longitude: location.longitude
+        } : null
+      };
+
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(loginData)
       });
 
       const data = await response.json();
 
       if (data.success) {
+        // Store token and session token
         localStorage.setItem('token', data.token);
+        localStorage.setItem('sessionToken', data.sessionToken);
         localStorage.setItem('user', JSON.stringify(data.user));
-        toast.success('Login successful!');
+        
+        // Check if user was logged out from another device
+        if (data.previousSessionLoggedOut) {
+          toast.success('Logged in! Previous session has been logged out.', { duration: 4000 });
+        } else {
+          toast.success('Login successful!');
+        }
+        
         router.push('/dashboard');
       } else {
         const errorMsg = data.error || 'Invalid email or password. Please check your credentials.';
         setError(errorMsg);
         toast.error(errorMsg);
+        
+        // If location error, show additional guidance
+        if (data.locationRequired) {
+          setLocationStatus('denied');
+        }
       }
     } catch (err) {
       const errorMsg = 'Network error. Please check your connection and try again.';
@@ -233,6 +357,24 @@ export default function LoginPage() {
                   </div>
                 )}
 
+                {/* Location Status for Employee/Intern */}
+                {locationStatus === 'denied' && (
+                  <div className="mb-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center mr-3">
+                        <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-amber-300 text-sm font-medium">Location Access Required</p>
+                        <p className="text-amber-400/70 text-xs mt-1">Employees and Interns must be at office location to login. Please enable location access.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Login Form */}
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Email Field */}
@@ -348,7 +490,7 @@ export default function LoginPage() {
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
-                          Signing in...
+                          {locationStatus === 'loading' ? 'Getting Location...' : 'Signing in...'}
                         </>
                       ) : (
                         <>

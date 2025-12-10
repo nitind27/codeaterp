@@ -11,6 +11,7 @@ export default function Layout({ children, user }) {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('sessionToken');
     localStorage.removeItem('user');
     router.push('/login');
   };
