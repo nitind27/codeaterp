@@ -1,13 +1,69 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
+import toast from 'react-hot-toast';
 
 export default function Layout({ children, user }) {
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Session validation - checks if current session is still valid
+  const validateSession = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch('/api/auth/me', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const data = await response.json();
+
+      // If session expired (logged in from another device)
+      if (response.status === 401 && data.sessionExpired) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('sessionToken');
+        localStorage.removeItem('user');
+        
+        toast.error('You have logged in from another device. This session has been logged out.', {
+          duration: 5000,
+          icon: '🔐'
+        });
+        
+        
+        router.push('/login?sessionExpired=true');
+      }
+    } catch (error) {
+      console.error('Session validation error:', error);
+    }
+  }, [router]);
+
+  // Validate session on mount and periodically (every 30 seconds)
+  useEffect(() => {
+    if (pathname === '/login' || pathname === '/register') return;
+
+    // Validate immediately on mount
+    validateSession();
+
+    // Set up periodic validation
+    const interval = setInterval(validateSession, 30000); // Check every 30 seconds
+
+    // Also validate when tab becomes visible (user switches back to this tab)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        validateSession();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [pathname, validateSession]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');

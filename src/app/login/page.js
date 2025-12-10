@@ -44,8 +44,8 @@ export default function LoginPage() {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('sessionExpired') === 'true') {
-        setError('You have been logged out because you logged in from another device.');
-        toast.error('Session expired! Logged in from another device.', { duration: 5000 });
+        setError('You have logged in from another device. Your previous session has been logged out.');
+        toast.error('🔐 You have been logged out here because of login from another device.', { duration: 6000 });
         // Clean up the URL
         window.history.replaceState({}, document.title, '/login');
       }

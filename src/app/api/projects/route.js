@@ -10,7 +10,7 @@ export async function GET(req) {
     const authResult = await authenticate(req);
     if (authResult.error) {
       return NextResponse.json(
-        { error: authResult.error },
+        { error: authResult.error, sessionExpired: authResult.sessionExpired || false },
         { status: authResult.status }
       );
     }
@@ -104,7 +104,7 @@ export async function POST(req) {
     const authResult = await authorize('admin', 'hr', 'project_manager')(req);
     if (authResult.error) {
       return NextResponse.json(
-        { error: authResult.error },
+        { error: authResult.error, sessionExpired: authResult.sessionExpired || false },
         { status: authResult.status }
       );
     }

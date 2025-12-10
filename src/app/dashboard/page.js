@@ -4,6 +4,20 @@ import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import LogoLoader from '../../components/LogoLoader';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
+
+// Helper function to handle session expiry
+const handleSessionExpiry = (data, router) => {
+  if (data.sessionExpired) {
+    localStorage.removeItem('token');
+    localStorage.removeItem('sessionToken');
+    localStorage.removeItem('user');
+    toast.error('Session expired! You have been logged in from another device.');
+    router.push('/login?sessionExpired=true');
+    return true;
+  }
+  return false;
+};
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -52,6 +66,12 @@ export default function DashboardPage() {
           projectsRes.json()
         ]);
 
+        // Check for session expiry in any response
+        if (handleSessionExpiry(employees, router) || handleSessionExpiry(attendance, router) || 
+            handleSessionExpiry(leaves, router) || handleSessionExpiry(projects, router)) {
+          return;
+        }
+
         setStats({
           totalEmployees: employees.employees?.length || 0,
           presentToday: attendance.attendance?.filter(a => a.status === 'present').length || 0,
@@ -69,6 +89,11 @@ export default function DashboardPage() {
           projectsRes.json(),
           tasksRes.json()
         ]);
+
+        // Check for session expiry
+        if (handleSessionExpiry(projects, router) || handleSessionExpiry(tasks, router)) {
+          return;
+        }
 
         setStats({
           activeProjects: projects.projects?.length || 0,
@@ -90,6 +115,12 @@ export default function DashboardPage() {
           tasksRes.json()
         ]);
 
+        // Check for session expiry
+        if (handleSessionExpiry(attendance, router) || handleSessionExpiry(leaves, router) || 
+            handleSessionExpiry(tasks, router)) {
+          return;
+        }
+
         setStats({
           attendanceThisMonth: attendance.attendance?.length || 0,
           pendingLeaves: leaves.leaves?.filter(l => l.status === 'pending').length || 0,
@@ -104,6 +135,12 @@ export default function DashboardPage() {
           headers: { Authorization: `Bearer ${token}` }
         });
         const anniversariesData = await anniversariesRes.json();
+        
+        // Check for session expiry
+        if (handleSessionExpiry(anniversariesData, router)) {
+          return;
+        }
+        
         if (anniversariesData.success) {
           setAnniversaries({
             birthdays: anniversariesData.birthdays || [],
