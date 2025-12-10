@@ -90,7 +90,11 @@ export async function POST(req) {
 
     // Check location for employee and intern roles
     if (LOCATION_REQUIRED_ROLES.includes(user.role)) {
+      console.log(`[LOGIN] User role: ${user.role}, Location received:`, location);
+      console.log(`[LOGIN] Office location: ${OFFICE_LOCATION.latitude}, ${OFFICE_LOCATION.longitude}, Radius: ${OFFICE_LOCATION.radiusInKm} km`);
+      
       if (!location || !location.latitude || !location.longitude) {
+        console.log('[LOGIN] Location not provided - rejecting');
         return NextResponse.json(
           { 
             error: 'Location access is required for employees and interns. Please enable location services and try again.',
@@ -101,17 +105,23 @@ export async function POST(req) {
       }
 
       const locationCheck = isWithinOfficeRadius(location.latitude, location.longitude);
+      console.log(`[LOGIN] Distance from office: ${locationCheck.distance} km, Within radius: ${locationCheck.isWithin}`);
       
       if (!locationCheck.isWithin) {
+        console.log('[LOGIN] User outside office radius - rejecting');
         return NextResponse.json(
           { 
-            error: `You must be at the office location to login. You are ${locationCheck.distance} km away from the office.`,
+            error: `You must be at the office location to login. You are ${locationCheck.distance} km away from the office. (Required: within ${OFFICE_LOCATION.radiusInKm} km)`,
             locationRequired: true,
-            distance: locationCheck.distance
+            distance: locationCheck.distance,
+            userLocation: location,
+            officeLocation: OFFICE_LOCATION
           },
           { status: 403 }
         );
       }
+      
+      console.log('[LOGIN] Location check passed ✓');
     }
 
     // Check if there was a previous session (for single device login)

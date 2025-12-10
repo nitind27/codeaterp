@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 
-// Office Location Configuration (Surat, Gujarat)
+// Office Location Configuration (Surat, Gujarat) - MUST MATCH API
 const OFFICE_LOCATION = {
-  latitude: 21.17,
-  longitude: 72.79,
-  radiusInKm: 0.5 // 500 meters radius
+  latitude: 21.1658,
+  longitude: 72.7939,
+  radiusInKm: 5 // 5 km radius
 };
 
 // Calculate distance between two coordinates using Haversine formula
@@ -173,13 +173,31 @@ export default function LoginPage() {
       // First, get user's location
       let location = null;
       try {
+        toast.loading('Getting your location...', { id: 'location-toast' });
         location = await getUserLocation();
         setUserLocation(location);
         setLocationStatus('success');
+        
+        // Calculate and show distance from office
+        const distance = calculateDistance(
+          location.latitude,
+          location.longitude,
+          OFFICE_LOCATION.latitude,
+          OFFICE_LOCATION.longitude
+        );
+        
+        toast.dismiss('location-toast');
+        console.log(`Location: ${location.latitude}, ${location.longitude} | Distance from office: ${distance.toFixed(2)} km`);
+        
+        if (distance > OFFICE_LOCATION.radiusInKm) {
+          toast.error(`You are ${distance.toFixed(2)} km away from office. Must be within ${OFFICE_LOCATION.radiusInKm} km.`, { duration: 5000 });
+        }
       } catch (locationError) {
         // Location might fail, but we'll let the server decide if it's required
+        toast.dismiss('location-toast');
         console.log('Location error:', locationError.message);
         setLocationStatus('error');
+        toast.error(locationError.message, { duration: 4000 });
       }
 
       // Prepare login data with location
@@ -190,6 +208,8 @@ export default function LoginPage() {
           longitude: location.longitude
         } : null
       };
+
+      console.log('Sending login data:', { email: loginData.email, location: loginData.location });
 
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -216,7 +236,7 @@ export default function LoginPage() {
       } else {
         const errorMsg = data.error || 'Invalid email or password. Please check your credentials.';
         setError(errorMsg);
-        toast.error(errorMsg);
+        toast.error(errorMsg, { duration: 5000 });
         
         // If location error, show additional guidance
         if (data.locationRequired) {
@@ -224,6 +244,7 @@ export default function LoginPage() {
         }
       }
     } catch (err) {
+      console.error('Login error:', err);
       const errorMsg = 'Network error. Please check your connection and try again.';
       setError(errorMsg);
       toast.error(errorMsg);
@@ -357,7 +378,7 @@ export default function LoginPage() {
                   </div>
                 )}
 
-                {/* Location Status for Employee/Intern */}
+                {/* Location Status Display */}
                 {locationStatus === 'denied' && (
                   <div className="mb-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl">
                     <div className="flex items-center">
@@ -370,6 +391,29 @@ export default function LoginPage() {
                       <div>
                         <p className="text-amber-300 text-sm font-medium">Location Access Required</p>
                         <p className="text-amber-400/70 text-xs mt-1">Employees and Interns must be at office location to login. Please enable location access.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Show user's location and distance when available */}
+                {userLocation && locationStatus === 'success' && (
+                  <div className="mb-6 p-4 bg-[#1A656D]/10 border border-[#1A656D]/30 rounded-xl">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#1A656D]/20 flex items-center justify-center mr-3">
+                        <svg className="w-5 h-5 text-[#31747c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-[#31747c] text-sm font-medium">📍 Location Detected</p>
+                        <p className="text-[#8db2b6] text-xs mt-1">
+                          Distance from office: {calculateDistance(userLocation.latitude, userLocation.longitude, OFFICE_LOCATION.latitude, OFFICE_LOCATION.longitude).toFixed(2)} km
+                          {calculateDistance(userLocation.latitude, userLocation.longitude, OFFICE_LOCATION.latitude, OFFICE_LOCATION.longitude) <= OFFICE_LOCATION.radiusInKm 
+                            ? ' ✅ (Within range)' 
+                            : ` ❌ (Must be within ${OFFICE_LOCATION.radiusInKm} km)`}
+                        </p>
                       </div>
                     </div>
                   </div>
