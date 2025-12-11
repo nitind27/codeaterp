@@ -7,9 +7,9 @@ import toast from 'react-hot-toast';
 
 // Office Location Configuration (Surat, Gujarat) - MUST MATCH API
 const OFFICE_LOCATION = {
-  latitude: 21.1658,
-  longitude: 72.7939,
-  radiusInKm: 0.5 // 5 km radius
+  latitude: 21.16657,
+  longitude: 72.84097,
+  radiusInKm: 0.1 // 5 km radius
 };
 
 // Calculate distance between two coordinates using Haversine formula
