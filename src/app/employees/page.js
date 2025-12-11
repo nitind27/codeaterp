@@ -97,7 +97,16 @@ export default function EmployeesPage() {
 
       const data = await response.json();
       if (data.success) {
-        toast.success('Employee created successfully!');
+        // Show success message with email status
+        if (data.emailSent) {
+          toast.success('✅ Employee created! Welcome email sent to ' + formData.email, { duration: 5000 });
+        } else {
+          toast.success('Employee created successfully!');
+          toast('⚠️ Welcome email could not be sent. Please share credentials manually.', { 
+            icon: '📧',
+            duration: 5000 
+          });
+        }
         setShowModal(false);
         setFormData({
           email: '',

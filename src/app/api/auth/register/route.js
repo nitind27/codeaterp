@@ -4,7 +4,7 @@ import { hashPassword, generateToken } from '../../../../../lib/auth.js';
 import { authorize } from '../../../../../lib/auth.js';
 import { validateEmail, generateEmployeeId } from '../../../../../lib/utils.js';
 import { logActivity } from '../../../../../lib/logger.js';
-import { sendOnboardingEmail } from '../../../../../lib/email.js';
+import { sendWelcomeEmailWithCredentials } from '../../../../../lib/email.js';
 
 export async function POST(req) {
   try {
@@ -107,11 +107,23 @@ export async function POST(req) {
         );
       }
 
-      // Send onboarding email
-      await sendOnboardingEmail(
-        { ...employeeData, employee_id: empId },
-        { email, id: userId }
-      );
+      // Send welcome email with login credentials
+      try {
+        await sendWelcomeEmailWithCredentials({
+          email: email,
+          password: password, // Original password (before hashing)
+          firstName: employeeData.first_name || '',
+          lastName: employeeData.last_name || '',
+          employeeId: empId,
+          role: role,
+          designation: employeeData.designation || null,
+          department: employeeData.department || null,
+          joiningDate: employeeData.joining_date || new Date()
+        });
+      } catch (emailError) {
+        console.error('Welcome email error:', emailError);
+        // Don't fail the registration if email fails
+      }
     }
 
     // Log activity

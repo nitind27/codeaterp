@@ -3,6 +3,7 @@ import pool from '../../../../lib/db.js';
 import { authorize, hashPassword } from '../../../../lib/auth.js';
 import { logActivity } from '../../../../lib/logger.js';
 import { validateEmail, generateEmployeeId } from '../../../../lib/utils.js';
+import { sendWelcomeEmailWithCredentials } from '../../../../lib/email.js';
 
 // Get all employees
 export async function GET(req) {
@@ -201,9 +202,48 @@ export async function POST(req) {
     await logActivity(authResult.user.id, 'create_employee', 'employee', employeeId, 
       `Created employee: ${first_name} ${last_name}`, req);
 
+    // Get the generated employee ID for email
+    let generatedEmpId = null;
+    if (employeeId) {
+      const [empData] = await pool.execute(
+        'SELECT employee_id FROM employees WHERE id = ?',
+        [employeeId]
+      );
+      if (empData.length > 0) {
+        generatedEmpId = empData[0].employee_id;
+      }
+    }
+
+    // Send welcome email with login credentials
+    let emailSent = false;
+    try {
+      const emailResult = await sendWelcomeEmailWithCredentials({
+        email: email,
+        password: password, // Original password (before hashing)
+        firstName: first_name || '',
+        lastName: last_name || '',
+        employeeId: generatedEmpId || 'N/A',
+        role: role,
+        designation: designation || null,
+        department: department || null,
+        joiningDate: joining_date || new Date()
+      });
+      
+      emailSent = emailResult.success;
+      if (!emailResult.success) {
+        console.error('Failed to send welcome email:', emailResult.error);
+      }
+    } catch (emailError) {
+      console.error('Welcome email error:', emailError);
+      // Don't fail the request if email fails
+    }
+
     return NextResponse.json({
       success: true,
-      message: 'Employee created successfully',
+      message: emailSent 
+        ? 'Employee created successfully! Welcome email sent.' 
+        : 'Employee created successfully! (Email could not be sent)',
+      emailSent: emailSent,
       user: {
         id: userId,
         email,
