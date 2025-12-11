@@ -170,7 +170,7 @@ export default function LoginPage() {
     setLocationStatus('loading');
 
     try {
-      // First, get user's location
+      // First, get user's location - REQUIRED for login
       let location = null;
       try {
         toast.loading('Getting your location...', { id: 'location-toast' });
@@ -178,7 +178,7 @@ export default function LoginPage() {
         setUserLocation(location);
         setLocationStatus('success');
         
-        // Calculate and show distance from office
+        // Calculate distance from office
         const distance = calculateDistance(
           location.latitude,
           location.longitude,
@@ -189,24 +189,42 @@ export default function LoginPage() {
         toast.dismiss('location-toast');
         console.log(`Location: ${location.latitude}, ${location.longitude} | Distance from office: ${distance.toFixed(2)} km`);
         
+        // Convert distance to meters for display
+        const distanceInMeters = Math.round(distance * 1000);
+        const radiusInMeters = Math.round(OFFICE_LOCATION.radiusInKm * 1000);
+        
+        // STRICT CHECK: If user is outside 100m radius, BLOCK login completely
         if (distance > OFFICE_LOCATION.radiusInKm) {
-          toast.error(`You are ${distance.toFixed(2)} km away from office. Must be within ${OFFICE_LOCATION.radiusInKm} km.`, { duration: 5000 });
+          setLocationStatus('error');
+          const errorMsg = `🚫 Login Blocked! You are ${distanceInMeters} meters away from office. You must be within ${radiusInMeters} meters (${OFFICE_LOCATION.radiusInKm} km) radius to login.`;
+          setError(errorMsg);
+          toast.error(`You are ${distanceInMeters}m away from office. Must be within ${radiusInMeters}m radius.`, { duration: 6000 });
+          setLoading(false);
+          return; // STOP LOGIN - Don't proceed further
         }
+        
+        // User is within radius - show success
+        toast.success(`✅ Location verified! You are ${distanceInMeters}m from office (within ${radiusInMeters}m radius)`, { duration: 3000 });
+        
       } catch (locationError) {
-        // Location might fail, but we'll let the server decide if it's required
+        // Location is REQUIRED - if it fails, block login
         toast.dismiss('location-toast');
         console.log('Location error:', locationError.message);
-        setLocationStatus('error');
-        toast.error(locationError.message, { duration: 4000 });
+        setLocationStatus('denied');
+        const errorMsg = `📍 Location Required! ${locationError.message} - Please enable location access to login.`;
+        setError(errorMsg);
+        toast.error(locationError.message, { duration: 5000 });
+        setLoading(false);
+        return; // STOP LOGIN - Location is mandatory
       }
 
-      // Prepare login data with location
+      // Prepare login data with location (only reaches here if within radius)
       const loginData = {
         ...formData,
-        location: location ? {
+        location: {
           latitude: location.latitude,
           longitude: location.longitude
-        } : null
+        }
       };
 
       console.log('Sending login data:', { email: loginData.email, location: loginData.location });
@@ -389,8 +407,8 @@ export default function LoginPage() {
                         </svg>
                       </div>
                       <div>
-                        <p className="text-amber-300 text-sm font-medium">Location Access Required</p>
-                        <p className="text-amber-400/70 text-xs mt-1">Employees and Interns must be at office location to login. Please enable location access.</p>
+                        <p className="text-amber-300 text-sm font-medium">📍 Location Access Required</p>
+                        <p className="text-amber-400/70 text-xs mt-1">You must be within {Math.round(OFFICE_LOCATION.radiusInKm * 1000)} meters of office to login. Please enable location access.</p>
                       </div>
                     </div>
                   </div>
@@ -398,21 +416,19 @@ export default function LoginPage() {
 
                 {/* Show user's location and distance when available */}
                 {userLocation && locationStatus === 'success' && (
-                  <div className="mb-6 p-4 bg-[#1A656D]/10 border border-[#1A656D]/30 rounded-xl">
+                  <div className="mb-6 p-4 bg-green-500/10 border border-green-500/30 rounded-xl">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#1A656D]/20 flex items-center justify-center mr-3">
-                        <svg className="w-5 h-5 text-[#31747c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center mr-3">
+                        <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                       </div>
                       <div>
-                        <p className="text-[#31747c] text-sm font-medium">📍 Location Detected</p>
-                        <p className="text-[#8db2b6] text-xs mt-1">
-                          Distance from office: {calculateDistance(userLocation.latitude, userLocation.longitude, OFFICE_LOCATION.latitude, OFFICE_LOCATION.longitude).toFixed(2)} km
-                          {calculateDistance(userLocation.latitude, userLocation.longitude, OFFICE_LOCATION.latitude, OFFICE_LOCATION.longitude) <= OFFICE_LOCATION.radiusInKm 
-                            ? ' ✅ (Within range)' 
-                            : ` ❌ (Must be within ${OFFICE_LOCATION.radiusInKm} km)`}
+                        <p className="text-green-400 text-sm font-medium">✅ Location Verified</p>
+                        <p className="text-green-300/70 text-xs mt-1">
+                          Distance from office: {Math.round(calculateDistance(userLocation.latitude, userLocation.longitude, OFFICE_LOCATION.latitude, OFFICE_LOCATION.longitude) * 1000)} meters
+                          {' '}(Within {Math.round(OFFICE_LOCATION.radiusInKm * 1000)}m radius)
                         </p>
                       </div>
                     </div>
