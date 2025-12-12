@@ -37,6 +37,41 @@ const calculateHoursDifference = (start, end) => {
   return Number((diff / (1000 * 60 * 60)).toFixed(2));
 };
 
+const formatTimeToAmPm = (timeStr) => {
+  if (!timeStr) return '-';
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const hour12 = hours % 12 || 12;
+  return `${hour12}:${String(minutes).padStart(2, '0')} ${ampm}`;
+};
+
+const calculateMinutesDifference = (start, end) => {
+  if (!start || !end) return null;
+  const startDate = parseTimeToDate(start);
+  const endDate = parseTimeToDate(end);
+  if (!startDate || !endDate) return null;
+  
+  const diffMs = endDate - startDate;
+  return Math.round(diffMs / (1000 * 60));
+};
+
+const formatDurationDisplay = (totalMinutes) => {
+  if (totalMinutes === null || totalMinutes === undefined) return '-';
+  
+  if (totalMinutes < 60) {
+    return `${totalMinutes} min`;
+  }
+  
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  
+  if (minutes === 0) {
+    return `${hours}h`;
+  }
+  
+  return `${hours}h ${minutes}m`;
+};
+
 export default function AttendancePage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
@@ -248,9 +283,6 @@ export default function AttendancePage() {
   const canClockIn = !todayAttendance || !todayAttendance.clockIn;
   const canClockOut = todayAttendance && todayAttendance.clockIn && !todayAttendance.clockOut;
   const canEditAttendance = ['admin', 'hr'].includes(user.role);
-  const previewTotalHours = editingRecord && editForm.clockIn && editForm.clockOut
-    ? calculateHoursDifference(editForm.clockIn, editForm.clockOut)
-    : null;
 
   return (
     <Layout user={user}>
@@ -277,13 +309,13 @@ export default function AttendancePage() {
                 <div className="bg-codeat-dark/50 rounded-xl p-5 border border-codeat-muted/30">
                   <p className="text-codeat-gray text-sm font-medium mb-2 uppercase tracking-wide">Clock In</p>
                   <p className="text-codeat-accent text-2xl lg:text-3xl font-bold">
-                    {todayAttendance.clockIn || 'Not clocked in'}
+                    {todayAttendance.clockIn ? formatTimeToAmPm(todayAttendance.clockIn) : 'Not clocked in'}
                   </p>
                 </div>
                 <div className="bg-codeat-dark/50 rounded-xl p-5 border border-codeat-muted/30">
                   <p className="text-codeat-gray text-sm font-medium mb-2 uppercase tracking-wide">Clock Out</p>
                   <p className="text-codeat-accent text-2xl lg:text-3xl font-bold">
-                    {todayAttendance.clockOut || 'Not clocked out'}
+                    {todayAttendance.clockOut ? formatTimeToAmPm(todayAttendance.clockOut) : 'Not clocked out'}
                   </p>
                 </div>
                 {todayAttendance.clockIn && !todayAttendance.clockOut && (
@@ -295,11 +327,11 @@ export default function AttendancePage() {
                     <p className="text-codeat-gray text-xs mt-1">Counting from clock in</p>
                   </div>
                 )}
-                {todayAttendance.totalHours && (
+                {todayAttendance.clockIn && todayAttendance.clockOut && (
                   <div className="bg-codeat-dark/50 rounded-xl p-5 border border-codeat-muted/30">
-                    <p className="text-codeat-gray text-sm font-medium mb-2 uppercase tracking-wide">Total Hours</p>
+                    <p className="text-codeat-gray text-sm font-medium mb-2 uppercase tracking-wide">Total Time</p>
                     <p className="text-codeat-accent text-2xl lg:text-3xl font-bold">
-                      {todayAttendance.totalHours} hrs
+                      {formatDurationDisplay(calculateMinutesDifference(todayAttendance.clockIn, todayAttendance.clockOut))}
                     </p>
                   </div>
                 )}
@@ -420,9 +452,9 @@ export default function AttendancePage() {
                       <td className="px-4 sm:px-6 py-4 text-codeat-silver font-medium">
                         {new Date(att.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </td>
-                      <td className="px-4 sm:px-6 py-4 text-codeat-silver font-mono text-sm">{att.clockIn || '-'}</td>
-                      <td className="px-4 sm:px-6 py-4 text-codeat-silver font-mono text-sm">{att.clockOut || '-'}</td>
-                      <td className="px-4 sm:px-6 py-4 text-codeat-silver font-semibold">{att.totalHours ? `${att.totalHours} hrs` : '-'}</td>
+                      <td className="px-4 sm:px-6 py-4 text-codeat-silver font-mono text-sm">{formatTimeToAmPm(att.clockIn)}</td>
+                      <td className="px-4 sm:px-6 py-4 text-codeat-silver font-mono text-sm">{formatTimeToAmPm(att.clockOut)}</td>
+                      <td className="px-4 sm:px-6 py-4 text-codeat-silver font-semibold">{formatDurationDisplay(calculateMinutesDifference(att.clockIn, att.clockOut))}</td>
                       <td className="px-4 sm:px-6 py-4">
                         <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${
                           att.status === 'present' 
@@ -494,12 +526,12 @@ export default function AttendancePage() {
                 />
                 <p className="text-codeat-gray text-xs mt-1">Leave empty to keep it blank.</p>
               </div>
-              {previewTotalHours !== null && (
+              {editForm.clockIn && editForm.clockOut && (
                 <div className="bg-codeat-dark/40 rounded-xl p-4 border border-codeat-muted/30">
-                  <p className="text-codeat-gray text-xs uppercase tracking-wide mb-1">Calculated Hours</p>
-                  <p className={`text-2xl font-semibold ${previewTotalHours < 0 ? 'text-red-400' : 'text-codeat-accent'}`}>
-                    {previewTotalHours >= 0
-                      ? `${previewTotalHours} hrs`
+                  <p className="text-codeat-gray text-xs uppercase tracking-wide mb-1">Calculated Time</p>
+                  <p className={`text-2xl font-semibold ${calculateMinutesDifference(editForm.clockIn, editForm.clockOut) < 0 ? 'text-red-400' : 'text-codeat-accent'}`}>
+                    {calculateMinutesDifference(editForm.clockIn, editForm.clockOut) >= 0
+                      ? formatDurationDisplay(calculateMinutesDifference(editForm.clockIn, editForm.clockOut))
                       : 'Invalid range'}
                   </p>
                 </div>

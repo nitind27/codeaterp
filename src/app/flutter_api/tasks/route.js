@@ -1,17 +1,21 @@
-import { NextResponse } from 'next/server';
 import pool from '../../../../lib/db.js';
 import { authenticate, authorize } from '../../../../lib/auth.js';
 import { logActivity } from '../../../../lib/logger.js';
+import { handleOptions, errorResponse, successResponse } from '../cors.js';
+
+// Handle OPTIONS preflight request
+export async function OPTIONS() {
+  return handleOptions();
+}
 
 // Get all tasks
 export async function GET(req) {
   try {
     const authResult = await authenticate(req);
     if (authResult.error) {
-      return NextResponse.json(
-        { error: authResult.error, sessionExpired: authResult.sessionExpired || false },
-        { status: authResult.status }
-      );
+      return errorResponse(authResult.error, authResult.status, {
+        sessionExpired: authResult.sessionExpired || false
+      });
     }
 
     const { user } = authResult;
@@ -20,12 +24,15 @@ export async function GET(req) {
     const assignedTo = searchParams.get('assigned_to');
     const status = searchParams.get('status');
     const priority = searchParams.get('priority');
+    const page = parseInt(searchParams.get('page')) || 1;
+    const limit = parseInt(searchParams.get('limit')) || 50;
+    const offset = (page - 1) * limit;
 
     let query = `
       SELECT t.*, 
              p.name as project_name, p.project_code,
              e.first_name as assigned_first_name, e.last_name as assigned_last_name,
-             e.employee_id as assigned_employee_id,
+             e.employee_id as assigned_employee_id, e.avatar as assigned_avatar,
              u.email as created_by_email
       FROM tasks t
       LEFT JOIN projects p ON t.project_id = p.id
@@ -45,7 +52,7 @@ export async function GET(req) {
         query += ' AND t.assigned_to = ?';
         params.push(userEmp[0].id);
       } else {
-        return NextResponse.json({ success: true, tasks: [] });
+        return successResponse({ tasks: [], pagination: { page, limit, total: 0, totalPages: 0 } });
       }
     }
 
@@ -69,12 +76,16 @@ export async function GET(req) {
       params.push(priority);
     }
 
-    query += ' ORDER BY t.created_at DESC';
+    // Get total count
+    const countQuery = query.replace(/SELECT[\s\S]*FROM/, 'SELECT COUNT(*) as total FROM');
+    const [countResult] = await pool.execute(countQuery, params);
+    const total = countResult[0].total;
+
+    query += ` ORDER BY t.created_at DESC LIMIT ${limit} OFFSET ${offset}`;
 
     const [tasks] = await pool.execute(query, params);
 
-    return NextResponse.json({
-      success: true,
+    return successResponse({
       tasks: tasks.map(task => ({
         id: task.id,
         projectId: task.project_id,
@@ -87,6 +98,7 @@ export async function GET(req) {
           ? `${task.assigned_first_name} ${task.assigned_last_name}`
           : null,
         assignedEmployeeId: task.assigned_employee_id,
+        assignedAvatar: task.assigned_avatar,
         createdBy: task.created_by,
         createdByEmail: task.created_by_email,
         status: task.status,
@@ -96,14 +108,17 @@ export async function GET(req) {
         actualHours: task.actual_hours,
         createdAt: task.created_at,
         updatedAt: task.updated_at
-      }))
+      })),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
     });
   } catch (error) {
-    console.error('Get tasks error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error('Flutter Get tasks error:', error);
+    return errorResponse('Internal server error', 500);
   }
 }
 
@@ -112,10 +127,9 @@ export async function POST(req) {
   try {
     const authResult = await authorize('admin', 'hr', 'project_manager')(req);
     if (authResult.error) {
-      return NextResponse.json(
-        { error: authResult.error, sessionExpired: authResult.sessionExpired || false },
-        { status: authResult.status }
-      );
+      return errorResponse(authResult.error, authResult.status, {
+        sessionExpired: authResult.sessionExpired || false
+      });
     }
 
     const { user } = authResult;
@@ -123,17 +137,11 @@ export async function POST(req) {
     const { projectId, title, description, assignedTo, status, priority, dueDate, estimatedHours } = data;
 
     if (!title) {
-      return NextResponse.json(
-        { error: 'Task title is required' },
-        { status: 400 }
-      );
+      return errorResponse('Task title is required', 400);
     }
 
     if (!assignedTo) {
-      return NextResponse.json(
-        { error: 'Please assign this task to an employee' },
-        { status: 400 }
-      );
+      return errorResponse('Please assign this task to an employee', 400);
     }
 
     const [result] = await pool.execute(
@@ -145,10 +153,9 @@ export async function POST(req) {
     );
 
     await logActivity(user.id, 'create_task', 'task', result.insertId, 
-      `Created task: ${title}`, req);
+      `Created task via Flutter: ${title}`, req);
 
-    return NextResponse.json({
-      success: true,
+    return successResponse({
       message: 'Task created successfully',
       task: {
         id: result.insertId,
@@ -156,11 +163,8 @@ export async function POST(req) {
       }
     });
   } catch (error) {
-    console.error('Create task error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error('Flutter Create task error:', error);
+    return errorResponse('Internal server error', 500);
   }
 }
 
