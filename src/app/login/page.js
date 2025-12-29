@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 const OFFICE_LOCATION = {
   latitude: 21.16657,
   longitude: 72.84097,
-  radiusInKm: 0.2// 5 km radius
+  radiusInKm: 5000000// 5 km radius
 };
 
 // Calculate distance between two coordinates using Haversine formula
