@@ -15,7 +15,7 @@ export async function GET(req, { params }) {
     }
 
     const { user } = authResult;
-    const { id } = params;
+    const { id } = await params;
 
     // Users can only view their own profile unless they're admin/hr/pm
     const [employees] = await pool.execute(
@@ -108,7 +108,7 @@ export async function PUT(req, { params }) {
     }
 
     const { user } = authResult;
-    const { id } = params;
+    const { id } = await params;
     const data = await req.json();
 
     // Check permission
@@ -190,7 +190,7 @@ export async function DELETE(req, { params }) {
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     // Get employee details for logging
     const [employees] = await pool.execute(

@@ -260,8 +260,8 @@ export default function EmployeesPage() {
         {/* ── ADD EMPLOYEE MODAL ── */}
         {showModal && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
-            <div className="bg-codeat-mid rounded-2xl border border-codeat-muted/50 w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl">
-              <div className="sticky top-0 bg-codeat-mid border-b border-codeat-muted/30 p-6 z-10">
+            <div className="bg-codeat-mid rounded-2xl border border-codeat-muted/50 w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl ">
+              <div className="sticky top-0 bg-codeat-mid border-b border-codeat-muted/30 p-6 bg-[#071e20] z-999">
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-2xl font-bold text-codeat-silver mb-1">Add New Employee</h2>
