@@ -22,7 +22,8 @@ export default function Chat({ channel, user, socket, socketReady }) {
   const [input, setInput]       = useState('');
   const [loading, setLoading]   = useState(true);
   const [sending, setSending]   = useState(false);
-  const [typing, setTyping]     = useState([]);
+  // typing: Map of userId -> userName
+  const [typing, setTyping]     = useState(new Map());
 
   const bottomRef    = useRef(null);
   const typingTimer  = useRef(null);
@@ -36,7 +37,7 @@ export default function Chat({ channel, user, socket, socketReady }) {
   useEffect(() => {
     msgsRef.current = [];
     setMessages([]);
-    setTyping([]);
+    setTyping(new Map());
     setLoading(true);
 
     const load = async () => {
@@ -89,17 +90,31 @@ export default function Chat({ channel, user, socket, socketReady }) {
       if (msgsRef.current.find(m => String(m.id) === String(msg.id))) return;
       msgsRef.current = [...msgsRef.current, msg];
       setMessages([...msgsRef.current]);
+      // Clear typing indicator for whoever just sent
+      setTyping(prev => {
+        const next = new Map(prev);
+        next.delete(String(msg.userId));
+        return next;
+      });
     };
 
     const onTyping = (d) => {
       if (String(d.channelId) !== String(channel.id)) return;
       if (String(d.userId) === String(user.id)) return;
-      setTyping(prev => prev.includes(d.userName) ? prev : [...prev, d.userName]);
+      setTyping(prev => {
+        const next = new Map(prev);
+        next.set(String(d.userId), d.userName);
+        return next;
+      });
     };
 
     const onStopTyping = (d) => {
       if (String(d.channelId) !== String(channel.id)) return;
-      setTyping(prev => prev.filter(n => n !== d.userName));
+      setTyping(prev => {
+        const next = new Map(prev);
+        next.delete(String(d.userId));
+        return next;
+      });
     };
 
     socket.on('new_message',      onMessage);
@@ -147,7 +162,6 @@ export default function Chat({ channel, user, socket, socketReady }) {
 
       socket.emit('send_message', { channelId: channel.id, message: text });
       socket.emit('stop_typing',  { channelId: channel.id });
-
       // When server confirms, replace tmp with real message
       const onConfirm = (msg) => {
         if (String(msg.channelId) !== String(channel.id)) return;
@@ -280,7 +294,7 @@ export default function Chat({ channel, user, socket, socketReady }) {
         )}
 
         {/* Typing indicator */}
-        {typing.length > 0 && (
+        {typing.size > 0 && (
           <div className="flex items-center gap-2 mt-3 px-1">
             <div className="flex gap-0.5">
               {[0, 1, 2].map(i => (
@@ -288,7 +302,7 @@ export default function Chat({ channel, user, socket, socketReady }) {
               ))}
             </div>
             <span className="text-[10px] text-white/30">
-              {typing.join(', ')} {typing.length === 1 ? 'is' : 'are'} typing…
+              {[...typing.values()].join(', ')} {typing.size === 1 ? 'is' : 'are'} typing…
             </span>
           </div>
         )}
