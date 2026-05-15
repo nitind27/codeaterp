@@ -172,19 +172,51 @@ export default function AttendancePage() {
     loadAdminData();
   };
 
+  /* ── get current location ── */
+  const getLocation = () => new Promise((resolve, reject) => {
+    if (!navigator.geolocation) { reject(new Error('Geolocation not supported')); return; }
+    navigator.geolocation.getCurrentPosition(
+      p => resolve({ latitude: p.coords.latitude, longitude: p.coords.longitude }),
+      e => reject(new Error(
+        e.code === 1 ? 'Location access denied. Please enable location to mark attendance.' :
+        e.code === 2 ? 'Location unavailable. Please try again.' :
+        'Location request timed out. Please try again.'
+      )),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  });
+
   /* ── clock in/out ── */
   const clockIn = async () => {
     setClocking(true);
     try {
       const token = localStorage.getItem('token');
+      let location = null;
+      try {
+        toast.loading('Getting your location…', { id: 'loc' });
+        location = await getLocation();
+        toast.dismiss('loc');
+      } catch (locErr) {
+        toast.dismiss('loc');
+        toast.error(locErr.message, { duration: 5000 });
+        setClocking(false);
+        return;
+      }
       const res = await fetch('/api/attendance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ location: 'Office' })
+        body: JSON.stringify({ location })
       });
       const d = await res.json();
-      if (d.success) { toast.success('Clocked in!'); await loadOwn(); }
-      else toast.error(d.error || 'Failed to clock in');
+      if (d.success) {
+        const msg = d.distanceMeters !== undefined
+          ? `Clocked in! (${d.distanceMeters}m from office)`
+          : 'Clocked in!';
+        toast.success(msg);
+        await loadOwn();
+      } else {
+        toast.error(d.error || 'Failed to clock in', { duration: 6000 });
+      }
     } catch { toast.error('Error clocking in'); }
     finally { setClocking(false); }
   };
@@ -193,14 +225,32 @@ export default function AttendancePage() {
     setClocking(true);
     try {
       const token = localStorage.getItem('token');
+      let location = null;
+      try {
+        toast.loading('Getting your location…', { id: 'loc' });
+        location = await getLocation();
+        toast.dismiss('loc');
+      } catch (locErr) {
+        toast.dismiss('loc');
+        toast.error(locErr.message, { duration: 5000 });
+        setClocking(false);
+        return;
+      }
       const res = await fetch('/api/attendance', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ location: 'Office' })
+        body: JSON.stringify({ location })
       });
       const d = await res.json();
-      if (d.success) { toast.success('Clocked out!'); await loadOwn(); }
-      else toast.error(d.error || 'Failed to clock out');
+      if (d.success) {
+        const msg = d.distanceMeters !== undefined
+          ? `Clocked out! (${d.distanceMeters}m from office)`
+          : 'Clocked out!';
+        toast.success(msg);
+        await loadOwn();
+      } else {
+        toast.error(d.error || 'Failed to clock out', { duration: 6000 });
+      }
     } catch { toast.error('Error clocking out'); }
     finally { setClocking(false); }
   };
