@@ -58,14 +58,14 @@ app.prepare().then(() => {
          FROM users u
          LEFT JOIN employees e ON u.id = e.user_id
          WHERE u.id = ? AND u.is_active = TRUE`,
-        [decoded.userId]
+        [decoded.id || decoded.userId]
       );
 
       if (users.length === 0) {
         return next(new Error('Authentication error: User not found'));
       }
 
-      socket.userId = decoded.userId;
+      socket.userId = decoded.id || decoded.userId;
       socket.user = users[0];
       next();
     } catch (error) {
@@ -192,7 +192,12 @@ app.prepare().then(() => {
     socket.on('disconnect', () => {
       console.log(`User disconnected: ${socket.user.email} (${socket.id})`);
       userSockets.delete(socket.userId);
+      // Broadcast offline status
+      io.emit('user_offline', { userId: socket.userId });
     });
+
+    // Broadcast online status to all
+    io.emit('user_online', { userId: socket.userId });
   });
 
   httpServer.listen(port, (err) => {

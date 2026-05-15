@@ -7,13 +7,10 @@ export async function GET(req, { params }) {
   try {
     const authResult = await authenticate(req);
     if (authResult.error) {
-      return NextResponse.json(
-        { error: authResult.error },
-        { status: authResult.status }
-      );
+      return NextResponse.json({ error: authResult.error }, { status: authResult.status });
     }
 
-    const channelId = params.id;
+    const { id: channelId } = await params;
     const userId = authResult.user.id;
 
     // Check if user is member
@@ -114,13 +111,10 @@ export async function POST(req, { params }) {
   try {
     const authResult = await authenticate(req);
     if (authResult.error) {
-      return NextResponse.json(
-        { error: authResult.error },
-        { status: authResult.status }
-      );
+      return NextResponse.json({ error: authResult.error }, { status: authResult.status });
     }
 
-    const channelId = params.id;
+    const { id: channelId } = await params;
     const userId = authResult.user.id;
 
     // Check if already a member

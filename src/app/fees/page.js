@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import LogoLoader from '../../components/LogoLoader';
 import { useRouter } from 'next/navigation';
@@ -15,6 +15,14 @@ export default function FeesPage() {
   const [loading, setLoading] = useState(true);
   const [showFeesModal, setShowFeesModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showEditFeesModal, setShowEditFeesModal] = useState(false);
+  const [editFeeTarget, setEditFeeTarget] = useState(null);
+  const [editFeesData, setEditFeesData] = useState({ totalFees: '', notes: '' });
+  const [editFeesSubmitting, setEditFeesSubmitting] = useState(false);
+  const [showDeletePaymentModal, setShowDeletePaymentModal] = useState(false);
+  const [deletePaymentTarget, setDeletePaymentTarget] = useState(null);
+  const [deletePaymentSubmitting, setDeletePaymentSubmitting] = useState(false);
+  const [expandedFee, setExpandedFee] = useState(null);
   const [selectedIntern, setSelectedIntern] = useState(null);
   const [feesFormData, setFeesFormData] = useState({
     employeeId: '',
@@ -147,185 +155,338 @@ export default function FeesPage() {
     }
   };
 
-  const downloadReceipt = async (paymentId) => {
+  const fmt = (n) => 'Rs. ' + parseFloat(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  const openEditFees = (fee) => {
+    setEditFeeTarget(fee);
+    setEditFeesData({ totalFees: fee.totalFees, notes: fee.notes || '' });
+    setShowEditFeesModal(true);
+  };
+
+  const handleEditFees = async (e) => {
+    e.preventDefault();
+    setEditFeesSubmitting(true);
     try {
-      if (!paymentId) {
-        toast.error('Payment ID is required');
-        return;
-      }
-
       const token = localStorage.getItem('token');
-      if (!token) {
-        toast.error('Please login again');
-        router.push('/login');
-        return;
-      }
+      const res = await fetch('/api/fees', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ employeeId: editFeeTarget.employeeId, totalFees: editFeesData.totalFees, notes: editFeesData.notes })
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success('Fees updated successfully!');
+        setShowEditFeesModal(false);
+        setEditFeeTarget(null);
+        loadData();
+      } else toast.error(data.error || 'Failed to update fees');
+    } catch { toast.error('Error updating fees'); }
+    finally { setEditFeesSubmitting(false); }
+  };
 
+  const openDeletePayment = (fee, payment) => {
+    setDeletePaymentTarget({ fee, payment });
+    setShowDeletePaymentModal(true);
+  };
+
+  const handleDeletePayment = async () => {
+    if (!deletePaymentTarget) return;
+    setDeletePaymentSubmitting(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`/api/fees/payments/${deletePaymentTarget.payment.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success('Payment deleted successfully!');
+        setShowDeletePaymentModal(false);
+        setDeletePaymentTarget(null);
+        loadData();
+      } else toast.error(data.error || 'Failed to delete payment');
+    } catch { toast.error('Error deleting payment'); }
+    finally { setDeletePaymentSubmitting(false); }
+  };
+
+  const downloadReceipt = async (paymentId) => {
+    if (!paymentId) { toast.error('Payment ID is required'); return; }
+    const token = localStorage.getItem('token');
+    if (!token) { router.push('/login'); return; }
+
+    try {
       const response = await fetch(`/api/fees/receipt/${paymentId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Failed to load receipt' }));
-        toast.error(errorData.error || 'Failed to load receipt');
-        return;
+        const err = await response.json().catch(() => ({}));
+        toast.error(err.error || 'Failed to load receipt'); return;
       }
-
       const data = await response.json();
-      if (!data.success || !data.receipt) {
-        toast.error(data.error || 'Failed to load receipt data');
-        return;
-      }
+      if (!data.success || !data.receipt) { toast.error(data.error || 'Failed to load receipt data'); return; }
 
-      const receipt = data.receipt;
+      const r = data.receipt;
 
-      // Validate receipt data
-      if (!receipt.receiptNumber || !receipt.paymentDate || !receipt.intern || !receipt.payment || !receipt.fees) {
-        toast.error('Invalid receipt data');
-        return;
-      }
+      // ── helpers ──────────────────────────────────────────────────────────
+      const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+      const W = doc.internal.pageSize.getWidth();
+      const H = doc.internal.pageSize.getHeight();
+      const lm = 18, rm = 18; // left/right margin
+      const cw = W - lm - rm;  // content width
+      const payDate = new Date(r.paymentDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+      const method = r.payment.paymentMethod.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      const isPaid = parseFloat(r.fees.remainingAmount) <= 0;
 
-      // Generate PDF
-      const doc = new jsPDF();
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const margin = 20;
-      let yPos = margin;
+      // ── PAGE BACKGROUND ──────────────────────────────────────────────────
+      doc.setFillColor(248, 250, 252);
+      doc.rect(0, 0, W, H, 'F');
 
-      // Header
-      doc.setFillColor(26, 101, 109); // codeat-teal
-      doc.rect(0, 0, pageWidth, 40, 'F');
+      // subtle grid watermark
+      doc.setDrawColor(220, 228, 232);
+      doc.setLineWidth(0.15);
+      for (let x = 0; x <= W; x += 8) doc.line(x, 0, x, H);
+      for (let y = 0; y <= H; y += 8) doc.line(0, y, W, y);
+
+      // white receipt body
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(lm - 3, 12, cw + 6, H - 24, 4, 4, 'F');
+      doc.setDrawColor(210, 220, 224);
+      doc.setLineWidth(0.3);
+      doc.roundedRect(lm - 3, 12, cw + 6, H - 24, 4, 4, 'S');
+
+      // ── HEADER BAND ──────────────────────────────────────────────────────
+      doc.setFillColor(15, 70, 76);
+      doc.roundedRect(lm - 3, 12, cw + 6, 52, 4, 4, 'F');
+      // cover bottom corners
+      doc.setFillColor(15, 70, 76);
+      doc.rect(lm - 3, 48, cw + 6, 16, 'F');
+
+      // teal accent line
+      doc.setFillColor(0, 188, 212);
+      doc.rect(lm - 3, 62, cw + 6, 2.5, 'F');
+
+      // company name
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(18);
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(24);
-      doc.setFont('helvetica', 'bold');
-      doc.text('PAYMENT RECEIPT', pageWidth / 2, 20, { align: 'center' });
-      doc.setFontSize(12);
-      doc.text(`Receipt No: ${receipt.receiptNumber}`, pageWidth / 2, 30, { align: 'center' });
+      doc.text('CODEAT INFOTECH', lm + 2, 32);
 
-      yPos = 50;
-      doc.setTextColor(0, 0, 0);
-
-      // Company Info
-      doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
-      doc.text('Codeat Infotech', margin, yPos);
-      doc.text('ERP System', margin, yPos + 5);
+      doc.setFontSize(8.5);
+      doc.setTextColor(160, 215, 220);
+      doc.text('Internship Management System', lm + 2, 40);
+      doc.text('Surat, Gujarat, India', lm + 2, 48);
 
-      // Date
+      // RECEIPT title (right)
       doc.setFont('helvetica', 'bold');
-      doc.text('Date:', pageWidth - margin - 40, yPos);
+      doc.setFontSize(28);
+      doc.setTextColor(255, 255, 255);
+      doc.text('RECEIPT', W - rm - 1, 35, { align: 'right' });
+
       doc.setFont('helvetica', 'normal');
-      doc.text(new Date(receipt.paymentDate).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      }), pageWidth - margin, yPos);
+      doc.setFontSize(8);
+      doc.setTextColor(160, 215, 220);
+      doc.text(`No: ${r.receiptNumber}`, W - rm - 1, 44, { align: 'right' });
+      doc.text(`Date: ${payDate}`, W - rm - 1, 51, { align: 'right' });
 
-      yPos += 20;
+      // ── BILLED TO / RECEIPT INFO ─────────────────────────────────────────
+      let y = 76;
 
-      // Intern Details
+      // left: billed to
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(12);
-      doc.text('Intern Details:', margin, yPos);
-      yPos += 8;
+      doc.setFontSize(7.5);
+      doc.setTextColor(130, 150, 155);
+      doc.text('BILLED TO', lm, y);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(13);
+      doc.setTextColor(20, 30, 35);
+      doc.text(r.intern.name, lm, y + 8);
+
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
-      doc.text(`Name: ${receipt.intern.name}`, margin, yPos);
-      yPos += 6;
-      doc.text(`Employee ID: ${receipt.intern.employeeId}`, margin, yPos);
-      yPos += 6;
-      if (receipt.intern.email) {
-        doc.text(`Email: ${receipt.intern.email}`, margin, yPos);
-        yPos += 6;
-      }
+      doc.setFontSize(8.5);
+      doc.setTextColor(80, 95, 100);
+      doc.text(`Employee ID: ${r.intern.employeeId}`, lm, y + 15);
+      if (r.intern.email) doc.text(`Email: ${r.intern.email}`, lm, y + 21);
+      if (r.intern.phone) doc.text(`Phone: ${r.intern.phone}`, lm, y + 27);
 
-      yPos += 10;
-
-      // Payment Details
+      // right: receipt meta
+      const rx2 = W / 2 + 10;
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(12);
-      doc.text('Payment Details:', margin, yPos);
-      yPos += 8;
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
-      doc.text(`Amount Paid: ₹${receipt.payment.amount.toFixed(2)}`, margin, yPos);
-      yPos += 6;
-      doc.text(`Payment Method: ${receipt.payment.paymentMethod.charAt(0).toUpperCase() + receipt.payment.paymentMethod.slice(1).replace('_', ' ')}`, margin, yPos);
-      yPos += 6;
-      if (receipt.payment.transactionId) {
-        doc.text(`Transaction ID: ${receipt.payment.transactionId}`, margin, yPos);
-        yPos += 6;
-      }
+      doc.setFontSize(7.5);
+      doc.setTextColor(130, 150, 155);
+      doc.text('RECEIPT DETAILS', rx2, y);
 
-      yPos += 10;
-
-      // Fees Summary
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(12);
-      doc.text('Fees Summary:', margin, yPos);
-      yPos += 8;
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
-      doc.text(`Total Fees: ₹${receipt.fees.totalFees.toFixed(2)}`, margin, yPos);
-      yPos += 6;
-      doc.text(`Amount Paid: ₹${receipt.fees.paidAmount.toFixed(2)}`, margin, yPos);
-      yPos += 6;
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(211, 47, 47); // Red for remaining
-      doc.text(`Remaining Amount: ₹${receipt.fees.remainingAmount.toFixed(2)}`, margin, yPos);
-
-      yPos += 15;
-      doc.setTextColor(0, 0, 0);
-
-      // Payment History
-      if (receipt.paymentHistory && receipt.paymentHistory.length > 0) {
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(12);
-        doc.text('Payment History:', margin, yPos);
-        yPos += 8;
-
-        // Table header
-        doc.setFillColor(240, 240, 240);
-        doc.rect(margin, yPos - 5, pageWidth - 2 * margin, 8, 'F');
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(9);
-        doc.text('Date', margin + 5, yPos);
-        doc.text('Amount', margin + 60, yPos);
-        doc.text('Method', margin + 110, yPos);
-        yPos += 8;
-
+      const meta = [
+        ['Receipt No', r.receiptNumber],
+        ['Payment Date', payDate],
+        ['Payment Method', method],
+        ...(r.payment.transactionId ? [['Transaction ID', r.payment.transactionId]] : []),
+      ];
+      doc.setFontSize(8.5);
+      meta.forEach((row, i) => {
+        const ry = y + 8 + i * 7;
         doc.setFont('helvetica', 'normal');
+        doc.setTextColor(110, 125, 130);
+        doc.text(row[0] + ':', rx2, ry);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(20, 30, 35);
+        const val = row[1].length > 22 ? row[1].slice(0, 22) + '...' : row[1];
+        doc.text(val, rx2 + 32, ry);
+      });
+
+      // ── DIVIDER ──────────────────────────────────────────────────────────
+      y += 38;
+      doc.setDrawColor(220, 228, 232);
+      doc.setLineWidth(0.4);
+      doc.line(lm, y, W - rm, y);
+
+      // ── AMOUNT PAID HERO ─────────────────────────────────────────────────
+      y += 8;
+      // big amount box
+      doc.setFillColor(15, 70, 76);
+      doc.roundedRect(lm, y, cw, 28, 3, 3, 'F');
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(160, 215, 220);
+      doc.text('AMOUNT PAID', W / 2, y + 8, { align: 'center' });
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(22);
+      doc.setTextColor(255, 255, 255);
+      doc.text(fmt(r.payment.amount), W / 2, y + 21, { align: 'center' });
+
+      // status badge
+      doc.setFillColor(isPaid ? 34 : 220, isPaid ? 197 : 38, isPaid ? 94 : 38);
+      doc.roundedRect(W - rm - 28, y + 6, 26, 10, 2, 2, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7);
+      doc.setTextColor(255, 255, 255);
+      doc.text(isPaid ? 'PAID IN FULL' : 'PARTIAL', W - rm - 15, y + 12.5, { align: 'center' });
+
+      // ── FEES BREAKDOWN TABLE ─────────────────────────────────────────────
+      y += 36;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(130, 150, 155);
+      doc.text('FEES BREAKDOWN', lm, y);
+
+      y += 5;
+      // table header
+      doc.setFillColor(240, 245, 248);
+      doc.rect(lm, y, cw, 8, 'F');
+      doc.setDrawColor(210, 220, 224);
+      doc.setLineWidth(0.25);
+      doc.rect(lm, y, cw, 8, 'S');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(80, 95, 100);
+      doc.text('DESCRIPTION', lm + 4, y + 5.5);
+      doc.text('AMOUNT', W - rm - 4, y + 5.5, { align: 'right' });
+
+      // rows
+      const rows = [
+        ['Total Course Fees', fmt(r.fees.totalFees), [248, 252, 253]],
+        ['Amount Paid (This Receipt)', fmt(r.payment.amount), [240, 252, 244]],
+        ['Total Paid to Date', fmt(r.fees.paidAmount), [240, 252, 244]],
+        ['Balance Remaining', fmt(r.fees.remainingAmount), isPaid ? [240, 252, 244] : [255, 243, 243]],
+      ];
+
+      rows.forEach((row, i) => {
+        const ry = y + 8 + i * 9;
+        doc.setFillColor(...row[2]);
+        doc.rect(lm, ry, cw, 9, 'F');
+        doc.setDrawColor(220, 228, 232);
+        doc.setLineWidth(0.2);
+        doc.rect(lm, ry, cw, 9, 'S');
+
+        doc.setFont('helvetica', i === 3 ? 'bold' : 'normal');
+        doc.setFontSize(8.5);
+        doc.setTextColor(i === 3 ? (isPaid ? 22 : 180) : 50, i === 3 ? (isPaid ? 130 : 30) : 65, i === 3 ? (isPaid ? 60 : 30) : 70);
+        doc.text(row[0], lm + 4, ry + 6);
+        doc.setFont('helvetica', 'bold');
+        doc.text(row[1], W - rm - 4, ry + 6, { align: 'right' });
+      });
+
+      // ── PAYMENT HISTORY ──────────────────────────────────────────────────
+      if (r.paymentHistory && r.paymentHistory.length > 0) {
+        y += 8 + rows.length * 9 + 10;
+
+        doc.setFont('helvetica', 'bold');
         doc.setFontSize(8);
-        receipt.paymentHistory.slice(0, 5).forEach(payment => {
-          if (yPos > 250) {
-            doc.addPage();
-            yPos = margin;
-          }
-          doc.text(new Date(payment.paymentDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }), margin + 5, yPos);
-          doc.text(`₹${payment.amount.toFixed(2)}`, margin + 60, yPos);
-          doc.text(payment.paymentMethod.charAt(0).toUpperCase() + payment.paymentMethod.slice(1).replace('_', ' '), margin + 110, yPos);
-          yPos += 6;
+        doc.setTextColor(130, 150, 155);
+        doc.text('PAYMENT HISTORY', lm, y);
+
+        y += 5;
+        // header
+        doc.setFillColor(15, 70, 76);
+        doc.rect(lm, y, cw, 8, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.setTextColor(200, 230, 235);
+        doc.text('#', lm + 3, y + 5.5);
+        doc.text('Receipt No', lm + 12, y + 5.5);
+        doc.text('Date', lm + 68, y + 5.5);
+        doc.text('Method', lm + 108, y + 5.5);
+        doc.text('Amount', W - rm - 3, y + 5.5, { align: 'right' });
+
+        r.paymentHistory.forEach((p, i) => {
+          const ry = y + 8 + i * 8;
+          doc.setFillColor(i % 2 === 0 ? 250 : 245, i % 2 === 0 ? 252 : 249, i % 2 === 0 ? 253 : 251);
+          doc.rect(lm, ry, cw, 8, 'F');
+          doc.setDrawColor(225, 232, 235);
+          doc.setLineWidth(0.15);
+          doc.rect(lm, ry, cw, 8, 'S');
+
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(7.5);
+          doc.setTextColor(80, 95, 100);
+          doc.text(String(i + 1), lm + 3, ry + 5.5);
+          doc.text((p.receiptNumber || '-').slice(0, 20), lm + 12, ry + 5.5);
+          doc.text(new Date(p.paymentDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }), lm + 68, ry + 5.5);
+          doc.text(p.paymentMethod.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), lm + 108, ry + 5.5);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(15, 70, 76);
+          doc.text(fmt(p.amount), W - rm - 3, ry + 5.5, { align: 'right' });
         });
       }
 
-      // Footer
-      const pageHeight = doc.internal.pageSize.getHeight();
-      doc.setFont('helvetica', 'italic');
-      doc.setFontSize(8);
-      doc.setTextColor(128, 128, 128);
-      doc.text('This is a computer-generated receipt.', pageWidth / 2, pageHeight - 15, { align: 'center' });
-      doc.text(`Generated on: ${new Date().toLocaleString('en-US')}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+      // ── DOTTED TEAR LINE ─────────────────────────────────────────────────
+      const tearY = H - 38;
+      doc.setDrawColor(180, 195, 200);
+      doc.setLineWidth(0.4);
+      doc.setLineDashPattern([1.5, 2], 0);
+      doc.line(lm, tearY, W - rm, tearY);
+      doc.setLineDashPattern([], 0);
+      // scissors icon text
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(180, 195, 200);
+      doc.text('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -', W / 2, tearY - 1, { align: 'center' });
 
-      // Save PDF
-      doc.save(`Receipt-${receipt.receiptNumber}.pdf`);
-      toast.success('Receipt downloaded successfully!');
+      // ── FOOTER STUB ──────────────────────────────────────────────────────
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(15, 70, 76);
+      doc.text('CODEAT INFOTECH', lm, tearY + 8);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(110, 125, 130);
+      doc.text(`Receipt: ${r.receiptNumber}  |  ${r.intern.name}  |  ${fmt(r.payment.amount)}`, lm, tearY + 15);
+
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(7);
+      doc.setTextColor(160, 175, 180);
+      doc.text('This is a computer-generated receipt and does not require a physical signature.', W / 2, tearY + 22, { align: 'center' });
+      doc.text(`Generated: ${new Date().toLocaleString('en-IN')}`, W / 2, tearY + 28, { align: 'center' });
+
+      doc.save(`Receipt-${r.receiptNumber}.pdf`);
+      toast.success('Receipt downloaded!');
     } catch (error) {
-      console.error('Error downloading receipt:', error);
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
-      });
-      toast.error(error.message || 'Error downloading receipt. Please try again.');
+      console.error('Receipt error:', error);
+      toast.error(error.message || 'Error downloading receipt');
     }
   };
 
@@ -404,7 +565,8 @@ export default function FeesPage() {
                 </thead>
                 <tbody>
                   {fees.map((fee) => (
-                    <tr key={fee.id} className="hover:bg-codeat-dark/40 transition-colors duration-200">
+                    <React.Fragment key={fee.id}>
+                    <tr className="hover:bg-codeat-dark/40 transition-colors duration-200">
                       {isAdmin && (
                         <td className="px-4 sm:px-6 py-4">
                           <div>
@@ -414,49 +576,109 @@ export default function FeesPage() {
                         </td>
                       )}
                       <td className="px-4 sm:px-6 py-4 text-codeat-silver font-medium">
-                        ₹{fee.totalFees.toFixed(2)}
+                        {fmt(fee.totalFees)}
                       </td>
                       <td className="px-4 sm:px-6 py-4 text-green-400 font-semibold">
-                        ₹{fee.paidAmount.toFixed(2)}
+                        {fmt(fee.paidAmount)}
                       </td>
                       <td className="px-4 sm:px-6 py-4 text-red-400 font-semibold">
-                        ₹{fee.remainingAmount.toFixed(2)}
+                        {fmt(fee.remainingAmount)}
                       </td>
                       <td className="px-4 sm:px-6 py-4 text-codeat-gray text-sm">
                         {fee.payments.length} payment{fee.payments.length !== 1 ? 's' : ''}
                       </td>
                       <td className="px-4 sm:px-6 py-4">
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
                           {isAdmin && (
-                            <button
-                              onClick={() => {
-                                setSelectedIntern(fee);
-                                setPaymentFormData({
-                                  internFeesId: fee.id,
-                                  amount: '',
-                                  paymentDate: new Date().toISOString().split('T')[0],
-                                  paymentMethod: 'cash',
-                                  transactionId: '',
-                                  notes: ''
-                                });
-                                setShowPaymentModal(true);
-                              }}
-                              className="px-3 py-1.5 bg-codeat-accent text-white rounded-lg hover:bg-codeat-accent/80 transition text-xs font-semibold"
-                            >
-                              Add Payment
-                            </button>
+                            <>
+                              <button
+                                onClick={() => {
+                                  setSelectedIntern(fee);
+                                  setPaymentFormData({
+                                    internFeesId: fee.id,
+                                    amount: '',
+                                    paymentDate: new Date().toISOString().split('T')[0],
+                                    paymentMethod: 'cash',
+                                    transactionId: '',
+                                    notes: ''
+                                  });
+                                  setShowPaymentModal(true);
+                                }}
+                                disabled={fee.remainingAmount <= 0}
+                                className="px-3 py-1.5 bg-codeat-accent text-white rounded-lg hover:bg-codeat-accent/80 transition text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
+                              >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
+                                Payment
+                              </button>
+                              <button
+                                onClick={() => openEditFees(fee)}
+                                className="px-3 py-1.5 bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded-lg hover:bg-blue-500/30 transition text-xs font-semibold flex items-center gap-1"
+                              >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                Edit Fees
+                              </button>
+                            </>
                           )}
                           {fee.payments.length > 0 && (
                             <button
-                              onClick={() => downloadReceipt(fee.payments[0].id)}
-                              className="px-3 py-1.5 bg-codeat-teal text-white rounded-lg hover:bg-codeat-teal/80 transition text-xs font-semibold"
+                              onClick={() => setExpandedFee(expandedFee === fee.id ? null : fee.id)}
+                              className="px-3 py-1.5 bg-codeat-muted/40 text-codeat-gray border border-codeat-muted/30 rounded-lg hover:bg-codeat-muted/60 transition text-xs font-semibold flex items-center gap-1"
                             >
-                              Download Receipt
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                              History
                             </button>
                           )}
                         </div>
                       </td>
                     </tr>
+                    {expandedFee === fee.id && fee.payments.length > 0 && (
+                      <tr key={`${fee.id}-history`}>
+                        <td colSpan={isAdmin ? 7 : 6} className="px-4 sm:px-6 pb-4 pt-0">
+                          <div className="bg-codeat-dark/60 rounded-xl border border-codeat-muted/20 overflow-hidden">
+                            <div className="px-4 py-2.5 border-b border-codeat-muted/20 flex items-center justify-between">
+                              <span className="text-codeat-silver text-xs font-semibold uppercase tracking-wider">Payment History — {fee.employeeName}</span>
+                              <span className="text-codeat-gray text-xs">{fee.payments.length} payment{fee.payments.length !== 1 ? 's' : ''}</span>
+                            </div>
+                            <table className="w-full text-xs">
+                              <thead>
+                                <tr className="border-b border-codeat-muted/20">
+                                  <th className="px-4 py-2 text-left text-codeat-gray font-medium">Receipt No</th>
+                                  <th className="px-4 py-2 text-left text-codeat-gray font-medium">Date</th>
+                                  <th className="px-4 py-2 text-left text-codeat-gray font-medium">Method</th>
+                                  <th className="px-4 py-2 text-right text-codeat-gray font-medium">Amount</th>
+                                  <th className="px-4 py-2 text-right text-codeat-gray font-medium">Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-codeat-muted/10">
+                                {fee.payments.map(payment => (
+                                  <tr key={payment.id} className="hover:bg-codeat-muted/10 transition-colors">
+                                    <td className="px-4 py-2.5 text-codeat-accent font-mono">{payment.receiptNumber || '—'}</td>
+                                    <td className="px-4 py-2.5 text-codeat-silver">{new Date(payment.paymentDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                                    <td className="px-4 py-2.5 text-codeat-gray capitalize">{payment.paymentMethod.replace(/_/g, ' ')}</td>
+                                    <td className="px-4 py-2.5 text-green-400 font-semibold text-right">{fmt(payment.amount)}</td>
+                                    <td className="px-4 py-2.5 text-right">
+                                      <div className="flex items-center justify-end gap-2">
+                                        <button onClick={() => downloadReceipt(payment.id)}
+                                          className="p-1.5 rounded-lg bg-codeat-teal/10 text-codeat-teal hover:bg-codeat-teal/20 transition" title="Download receipt">
+                                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                        </button>
+                                        {isAdmin && (
+                                          <button onClick={() => openDeletePayment(fee, payment)}
+                                            className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition" title="Delete payment">
+                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                          </button>
+                                        )}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                    </React.Fragment>
                   ))}
                 </tbody>
               </table>
@@ -472,7 +694,7 @@ export default function FeesPage() {
               {fees[0].payments.map((payment) => (
                 <div key={payment.id} className="bg-codeat-dark/40 rounded-xl p-4 border border-codeat-muted/30 flex items-center justify-between">
                   <div>
-                    <div className="text-codeat-silver font-semibold">₹{payment.amount.toFixed(2)}</div>
+                    <div className="text-codeat-silver font-semibold">₹{parseFloat(payment.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                     <div className="text-codeat-gray text-sm">
                       {new Date(payment.paymentDate).toLocaleDateString('en-US', {
                         year: 'numeric',
@@ -605,15 +827,15 @@ export default function FeesPage() {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <span className="text-codeat-gray">Total Fees:</span>
-                      <span className="text-codeat-silver font-semibold ml-2">₹{selectedIntern.totalFees.toFixed(2)}</span>
+                      <span className="text-codeat-silver font-semibold ml-2">{fmt(selectedIntern.totalFees)}</span>
                     </div>
                     <div>
                       <span className="text-codeat-gray">Paid:</span>
-                      <span className="text-green-400 font-semibold ml-2">₹{selectedIntern.paidAmount.toFixed(2)}</span>
+                      <span className="text-green-400 font-semibold ml-2">{fmt(selectedIntern.paidAmount)}</span>
                     </div>
                     <div>
                       <span className="text-codeat-gray">Remaining:</span>
-                      <span className="text-red-400 font-semibold ml-2">₹{selectedIntern.remainingAmount.toFixed(2)}</span>
+                      <span className="text-red-400 font-semibold ml-2">{fmt(selectedIntern.remainingAmount)}</span>
                     </div>
                   </div>
                 </div>
@@ -633,7 +855,7 @@ export default function FeesPage() {
                     required
                   />
                   <p className="text-codeat-gray text-xs mt-1.5">
-                    Maximum: ₹{selectedIntern.remainingAmount.toFixed(2)}
+                    Maximum: {fmt(selectedIntern.remainingAmount)}
                   </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
@@ -706,6 +928,112 @@ export default function FeesPage() {
             </div>
           </div>
         )}
+
+        {/* ── EDIT FEES MODAL ── */}
+        {showEditFeesModal && editFeeTarget && (
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
+            <div className="bg-codeat-mid rounded-2xl border border-codeat-muted/50 w-full max-w-lg shadow-2xl">
+              <div className="flex items-center justify-between p-6 border-b border-codeat-muted/30">
+                <div>
+                  <h2 className="text-xl font-bold text-codeat-silver">Edit Fees</h2>
+                  <p className="text-codeat-gray text-sm mt-0.5">{editFeeTarget.employeeName} · {editFeeTarget.employeeCode}</p>
+                </div>
+                <button onClick={() => { setShowEditFeesModal(false); setEditFeeTarget(null); }}
+                  className="p-2 hover:bg-codeat-muted/50 rounded-lg transition text-codeat-gray hover:text-codeat-silver">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+              </div>
+
+              {/* current summary */}
+              <div className="mx-6 mt-5 grid grid-cols-3 gap-3">
+                {[
+                  { label: 'Total Fees', value: fmt(editFeeTarget.totalFees), color: 'text-codeat-silver' },
+                  { label: 'Paid', value: fmt(editFeeTarget.paidAmount), color: 'text-green-400' },
+                  { label: 'Remaining', value: fmt(editFeeTarget.remainingAmount), color: 'text-red-400' },
+                ].map(s => (
+                  <div key={s.label} className="bg-codeat-dark/50 rounded-xl p-3 border border-codeat-muted/20 text-center">
+                    <p className="text-codeat-gray text-[10px] uppercase tracking-wider mb-1">{s.label}</p>
+                    <p className={`${s.color} font-bold text-sm`}>{s.value}</p>
+                  </div>
+                ))}
+              </div>
+
+              <form onSubmit={handleEditFees} className="p-6 space-y-4">
+                <div>
+                  <label className="block text-codeat-silver text-sm font-semibold mb-2">
+                    New Total Fees (Rs.) <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="number" step="0.01" min={editFeeTarget.paidAmount}
+                    value={editFeesData.totalFees}
+                    onChange={e => setEditFeesData({ ...editFeesData, totalFees: e.target.value })}
+                    className="input-field" required
+                  />
+                  <p className="text-codeat-gray/60 text-xs mt-1">
+                    Minimum: {fmt(editFeeTarget.paidAmount)} (already paid amount)
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-codeat-silver text-sm font-semibold mb-2">Notes</label>
+                  <textarea
+                    value={editFeesData.notes}
+                    onChange={e => setEditFeesData({ ...editFeesData, notes: e.target.value })}
+                    className="input-field" rows="2" placeholder="Optional notes..."
+                  />
+                </div>
+                <div className="flex gap-3 pt-2 border-t border-codeat-muted/30">
+                  <button type="submit" disabled={editFeesSubmitting}
+                    className="flex-1 py-3 bg-gradient-to-r from-codeat-teal to-codeat-accent text-white rounded-xl font-semibold hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                    {editFeesSubmitting ? (
+                      <><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Saving...</>
+                    ) : 'Save Changes'}
+                  </button>
+                  <button type="button" onClick={() => { setShowEditFeesModal(false); setEditFeeTarget(null); }} disabled={editFeesSubmitting}
+                    className="flex-1 py-3 bg-codeat-muted/50 text-codeat-silver rounded-xl font-semibold hover:bg-codeat-muted transition border border-codeat-muted/30 disabled:opacity-50">
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ── DELETE PAYMENT MODAL ── */}
+        {showDeletePaymentModal && deletePaymentTarget && (
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
+            <div className="bg-codeat-mid rounded-2xl border border-red-500/30 w-full max-w-md shadow-2xl">
+              <div className="p-6 text-center">
+                <div className="w-14 h-14 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-7 h-7 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                  </svg>
+                </div>
+                <h3 className="text-lg font-bold text-codeat-silver mb-1">Delete Payment</h3>
+                <p className="text-codeat-gray text-sm mb-1">This will reverse the payment of</p>
+                <p className="text-red-400 font-bold text-xl mb-1">{fmt(deletePaymentTarget.payment.amount)}</p>
+                <p className="text-codeat-gray/60 text-xs mb-1">
+                  Receipt: {deletePaymentTarget.payment.receiptNumber || '—'}
+                </p>
+                <p className="text-codeat-gray/60 text-xs mb-5">
+                  The paid amount will be reduced and remaining balance will increase accordingly.
+                </p>
+                <div className="flex gap-3">
+                  <button onClick={handleDeletePayment} disabled={deletePaymentSubmitting}
+                    className="flex-1 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                    {deletePaymentSubmitting ? (
+                      <><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Deleting...</>
+                    ) : 'Yes, Delete'}
+                  </button>
+                  <button onClick={() => { setShowDeletePaymentModal(false); setDeletePaymentTarget(null); }} disabled={deletePaymentSubmitting}
+                    className="flex-1 py-3 bg-codeat-muted/50 text-codeat-silver rounded-xl font-semibold hover:bg-codeat-muted transition border border-codeat-muted/30 disabled:opacity-50">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </Layout>
   );
