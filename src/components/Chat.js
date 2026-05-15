@@ -17,7 +17,7 @@ function fmtTime(ts) {
 }
 
 // Chat receives the shared socket from DiscussionsPage
-export default function Chat({ channel, user, socket, socketReady }) {
+export default function Chat({ channel, user, socket, socketReady, onBack }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput]       = useState('');
   const [loading, setLoading]   = useState(true);
@@ -227,7 +227,18 @@ export default function Chat({ channel, user, socket, socketReady }) {
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="flex-shrink-0 flex items-center gap-3 px-4 py-3 border-b border-white/[0.06] bg-[#060d0e]">
-        <span className="text-lg">{TI[channel.type] || '#'}</span>
+        {/* Back button — mobile only */}
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="md:hidden flex-shrink-0 w-8 h-8 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] flex items-center justify-center text-white/50 hover:text-white transition"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/>
+            </svg>
+          </button>
+        )}
+        <span className="text-lg flex-shrink-0">{TI[channel.type] || '#'}</span>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold text-white truncate">
             {channel.type === 'direct' ? channel.name : `#${channel.name}`}
@@ -238,7 +249,7 @@ export default function Chat({ channel, user, socket, socketReady }) {
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <span className={`w-1.5 h-1.5 rounded-full transition-colors ${socketReady ? 'bg-green-400' : 'bg-amber-400 animate-pulse'}`}/>
-          <span className="text-[10px] text-white/20">
+          <span className="text-[10px] text-white/20 hidden sm:block">
             {socketReady ? `${channel.member_count || 0} members` : 'connecting…'}
           </span>
         </div>
@@ -323,8 +334,7 @@ export default function Chat({ channel, user, socket, socketReady }) {
             value={input}
             onChange={handleTyping}
             onKeyDown={handleKeyDown}
-            placeholder={`Message ${channel.type === 'direct' ? channel.name : '#' + channel.name}…`}
-            className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#1A656D]/50 transition"
+            placeholder={`Message ${channel.type === 'direct' ? channel.name : '#' + channel.name}…`}            className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#1A656D]/50 transition"
             autoComplete="off"
           />
           <button
