@@ -5,8 +5,10 @@ import { logActivity } from '../../../../lib/logger.js';
 
 // ── Office location & radius ───────────────────────────────────────────────
 const OFFICE = {
-  latitude:  21.1877888,
-  longitude: 72.8367104,
+  latitude:  21.165979,
+  longitude: 73.566069,
+  // latitude:  21.1877888,
+  // longitude: 72.8367104,
   radiusInKm: 0.1,  // 100 metres — change here to adjust
 };
 
