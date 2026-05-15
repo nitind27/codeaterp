@@ -149,8 +149,11 @@ export async function POST(req) {
     }
 
     const employeeId = employees[0].id;
-    const today = new Date().toISOString().split('T')[0];
-    const now   = new Date().toTimeString().split(' ')[0].substring(0, 5);
+
+    // Use IST (Asia/Kolkata) for date and time
+    const nowIST  = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    const today   = `${nowIST.getFullYear()}-${String(nowIST.getMonth()+1).padStart(2,'0')}-${String(nowIST.getDate()).padStart(2,'0')}`;
+    const now     = `${String(nowIST.getHours()).padStart(2,'0')}:${String(nowIST.getMinutes()).padStart(2,'0')}:${String(nowIST.getSeconds()).padStart(2,'0')}`;
     const locationStr = location?.latitude
       ? `${location.latitude},${location.longitude}`
       : (body.location || 'Office');
@@ -217,8 +220,11 @@ export async function PUT(req) {
     }
 
     const employeeId = employees[0].id;
-    const today = new Date().toISOString().split('T')[0];
-    const now   = new Date().toTimeString().split(' ')[0].substring(0, 5);
+
+    // Use IST (Asia/Kolkata) for date and time
+    const nowIST  = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    const today   = `${nowIST.getFullYear()}-${String(nowIST.getMonth()+1).padStart(2,'0')}-${String(nowIST.getDate()).padStart(2,'0')}`;
+    const now     = `${String(nowIST.getHours()).padStart(2,'0')}:${String(nowIST.getMinutes()).padStart(2,'0')}:${String(nowIST.getSeconds()).padStart(2,'0')}`;
     const locationStr = location?.latitude
       ? `${location.latitude},${location.longitude}`
       : (body.location || 'Office');
@@ -235,9 +241,12 @@ export async function PUT(req) {
       return NextResponse.json({ error: 'Already clocked out today' }, { status: 400 });
     }
 
-    const clockInTime  = new Date(`2000-01-01T${attendance[0].clock_in}`);
-    const clockOutTime = new Date(`2000-01-01T${now}`);
-    const totalHours   = ((clockOutTime - clockInTime) / 3600000).toFixed(2);
+    // Total hours: parse HH:MM:SS properly
+    const [ih, im, is_] = attendance[0].clock_in.split(':').map(Number);
+    const [oh, om, os]  = now.split(':').map(Number);
+    const inSec  = ih * 3600 + im * 60 + (is_ || 0);
+    const outSec = oh * 3600 + om * 60 + (os  || 0);
+    const totalHours = Math.max(0, (outSec - inSec) / 3600).toFixed(2);
 
     await pool.execute(
       `UPDATE attendance SET clock_out = ?, clock_out_location = ?, total_hours = ?, updated_at = NOW() WHERE id = ?`,

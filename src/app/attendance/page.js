@@ -9,14 +9,16 @@ import toast from 'react-hot-toast';
 /* ─── helpers ─────────────────────────────────────────────────────────────── */
 const parseTimeToDate = (t) => {
   if (!t) return null;
-  const [h = 0, m = 0, s = 0] = t.split(':').map(Number);
-  if ([h, m, s].some(isNaN)) return null;
-  const d = new Date(); d.setHours(h, m, s, 0); return d;
+  const parts = t.split(':').map(Number);
+  const [h = 0, m = 0, s = 0] = parts;
+  if (isNaN(h) || isNaN(m)) return null;
+  const d = new Date(); d.setHours(h, m, isNaN(s) ? 0 : s, 0); return d;
 };
 
 const toAmPm = (t) => {
   if (!t) return '—';
   const [h, m] = t.split(':').map(Number);
+  if (isNaN(h) || isNaN(m)) return '—';
   const ampm = h >= 12 ? 'PM' : 'AM';
   return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${ampm}`;
 };
