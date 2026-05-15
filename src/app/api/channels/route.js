@@ -37,14 +37,23 @@ export async function GET(req) {
           WHEN EXISTS (SELECT 1 FROM channel_members cm WHERE cm.channel_id = dc.id AND cm.user_id = ?) 
           THEN TRUE 
           ELSE FALSE 
-        END as is_member
+        END as is_member,
+        -- For DMs: return the peer's user id
+        CASE
+          WHEN dc.type = 'direct' THEN (
+            SELECT cm_peer.user_id FROM channel_members cm_peer
+            WHERE cm_peer.channel_id = dc.id AND cm_peer.user_id != ?
+            LIMIT 1
+          )
+          ELSE NULL
+        END as dm_peer_id
       FROM discussion_channels dc
       LEFT JOIN users u ON dc.created_by = u.id
       LEFT JOIN employees e ON u.id = e.user_id
       WHERE dc.is_active = TRUE
         AND (dc.type != 'direct' OR EXISTS (SELECT 1 FROM channel_members cm2 WHERE cm2.channel_id = dc.id AND cm2.user_id = ?))
       ORDER BY dc.type = 'direct' ASC, dc.created_at DESC`,
-      [userId, userId]
+      [userId, userId, userId]
     );
 
     return NextResponse.json({ success: true, channels });
