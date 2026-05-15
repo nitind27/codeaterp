@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Internship Logbook - CODEAT INFOTECH</title>
+
+<style>
+body{
+    font-family:"Times New Roman", serif;
+    margin:0;
+    padding:0;
+    color:#000;
+}
+
+/* ================= FORM ================= */
+.form-box{
+    padding:15px;
+    background:#f2f2f2;
+    border-bottom:2px solid #000;
+}
+.form-box label{
+    font-weight:bold;
+    display:block;
+    margin-top:8px;
+}
+.form-box input{
+    width:300px;
+    padding:5px;
+}
+
+/* ================= PAGE ================= */
+.page{
+    width:210mm;
+    min-height:297mm;
+    padding:20mm;
+    box-sizing:border-box;
+    page-break-after:always;
+}
+.container{
+    border:2px solid #000;
+    padding:10px;
+}
+.header{
+    text-align:center;
+    font-size:22px;
+    font-weight:bold;
+}
+.sub-header{
+    text-align:center;
+    font-size:15px;
+    margin-bottom:10px;
+}
+table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14px;
+}
+th,td{
+    border:1px solid #000;
+    padding:6px;
+}
+th{text-align:center;}
+
+.signature{
+    margin-top:40px;
+    display:flex;
+    justify-content:space-between;
+}
+.sign-box{
+    width:45%;
+    text-align:center;
+}
+.line{
+    margin-top:45px;
+    border-top:1px solid #000;
+    padding-top:5px;
+    font-weight:bold;
+}
+
+/* ================= PRINT ================= */
+@media print{
+    .form-box{display:none;}
+}
+</style>
+</head>
+
+<body>
+
+<!-- ================= FORM ================= -->
+<div class="form-box">
+<h3>Fill Student Details</h3>
+
+<label>Student Name</label>
+<input type="text" id="studentName" onkeyup="updateData()" placeholder="Enter Student Name">
+
+<label>Enrollment No</label>
+<input type="text" id="enrollNo" onkeyup="updateData()" placeholder="Enter Enrollment No">
+
+<br><br>
+<button onclick="window.print()">Print / Save PDF</button>
+</div>
+
+<script>
+function updateData(){
+    document.querySelectorAll(".studentName").forEach(el=>{
+        el.innerText = studentName.value || "______________";
+    });
+    document.querySelectorAll(".enrollNo").forEach(el=>{
+        el.innerText = enrollNo.value || "______________";
+    });
+}
+</script>
+
+<!-- ================= WEEK 1 ================= -->
+<div class="page"><div class="container">
+<div class="header">CODEAT INFOTECH</div>
+<div class="sub-header">Internship Training Logbook - 2025<br>Surat, Gujarat</div>
+
+<table>
+<tr>
+<td><b>Student Name:</b> <span class="studentName">Rahul Patel</span></td>
+<td><b>Enrollment No:</b> <span class="enrollNo">IT-001</span></td>
+</tr>
+<tr><td><b>Week:</b> Week 1</td><td><b>Date Range:</b> 10/11/2025 – 14/11/2025</td></tr>
+</table><br>
+
+<table>
+<tr><th>Date</th><th>Tasks Assigned</th><th>Tasks Completed</th><th>Tools Used</th></tr>
+<tr><td>10/11/2025</td><td>Introduction to HTML, structure of web pages.</td><td>Understood HTML tags and basic structure.</td><td>HTML, VS Code</td></tr>
+<tr><td>11/11/2025</td><td>Headings, paragraphs, lists, links.</td><td>Created sample content-based HTML page.</td><td>HTML</td></tr>
+<tr><td>12/11/2025</td><td>Images, tables, forms in HTML.</td><td>Built form and table layout.</td><td>HTML</td></tr>
+<tr><td>13/11/2025</td><td>CSS introduction, selectors, colors.</td><td>Applied basic CSS styling.</td><td>CSS</td></tr>
+<tr><td>14/11/2025</td><td>Landing page layout using HTML & CSS.</td><td>Static landing page completed.</td><td>HTML, CSS</td></tr>
+</table>
+
+<div class="signature">
+<div class="sign-box"><div class="line">Student Signature</div></div>
+<div class="sign-box"><div class="line">Supervisor Signature & Stamp</div></div>
+</div>
+</div></div>
+
+<!-- ================= WEEK 2 ================= -->
+<div class="page"><div class="container">
+<div class="header">CODEAT INFOTECH</div>
+
+<table>
+<tr>
+<td><b>Student Name:</b> <span class="studentName">Rahul Patel</span></td>
+<td><b>Enrollment No:</b> <span class="enrollNo">IT-001</span></td>
+</tr>
+<tr><td><b>Week:</b> Week 2</td><td><b>Date Range:</b> 17/11/2025 – 21/11/2025</td></tr>
+</table><br>
+
+<table>
+<tr><th>Date</th><th>Tasks Assigned</th><th>Tasks Completed</th><th>Tools Used</th></tr>
+<tr><td>17/11/2025</td><td>CSS box model</td><td>Spacing & alignment practiced</td><td>CSS</td></tr>
+<tr><td>18/11/2025</td><td>Flexbox</td><td>Layout built</td><td>CSS Flexbox</td></tr>
+<tr><td>19/11/2025</td><td>Tailwind intro</td><td>Tailwind setup done</td><td>Tailwind CSS</td></tr>
+<tr><td>20/11/2025</td><td>Responsive design</td><td>Mobile responsive page</td><td>Tailwind</td></tr>
+<tr><td>21/11/2025</td><td>Portfolio page</td><td>Portfolio UI completed</td><td>HTML, Tailwind</td></tr>
+</table>
+
+<div class="signature">
+<div class="sign-box"><div class="line">Student Signature</div></div>
+<div class="sign-box"><div class="line">Supervisor Signature & Stamp</div></div>
+</div>
+</div></div>
+
+<!-- ================= WEEK 3 ================= -->
+<div class="page"><div class="container">
+<div class="header">CODEAT INFOTECH</div>
+
+<table>
+<tr>
+<td><b>Student Name:</b> <span class="studentName">Rahul Patel</span></td>
+<td><b>Enrollment No:</b> <span class="enrollNo">IT-001</span></td>
+</tr>
+<tr><td><b>Week:</b> Week 3</td><td><b>Date Range:</b> 24/11/2025 – 28/11/2025</td></tr>
+</table><br>
+
+<table>
+<tr><th>Date</th><th>Tasks Assigned</th><th>Tasks Completed</th><th>Tools Used</th></tr>
+<tr><td>24/11/2025</td><td>Product card UI</td><td>Card layout created</td><td>Tailwind</td></tr>
+<tr><td>25/11/2025</td><td>Hover effects</td><td>Animations added</td><td>CSS</td></tr>
+<tr><td>26/11/2025</td><td>Grid layout</td><td>Grid implemented</td><td>CSS Grid</td></tr>
+<tr><td>27/11/2025</td><td>JS basics</td><td>JS event handling</td><td>JavaScript</td></tr>
+<tr><td>28/11/2025</td><td>UI refinement</td><td>Responsive fixes</td><td>JS, Tailwind</td></tr>
+</table>
+
+<div class="signature">
+<div class="sign-box"><div class="line">Student Signature</div></div>
+<div class="sign-box"><div class="line">Supervisor Signature & Stamp</div></div>
+</div>
+</div></div>
+
+<!-- ================= WEEK 4 ================= -->
+<div class="page"><div class="container">
+<div class="header">CODEAT INFOTECH</div>
+
+<table>
+<tr>
+<td><b>Student Name:</b> <span class="studentName">Rahul Patel</span></td>
+<td><b>Enrollment No:</b> <span class="enrollNo">IT-001</span></td>
+</tr>
+<tr><td><b>Week:</b> Week 4</td><td><b>Date Range:</b> 01/12/2025 – 05/12/2025</td></tr>
+</table><br>
+
+<table>
+<tr><th>Date</th><th>Tasks Assigned</th><th>Tasks Completed</th><th>Tools Used</th></tr>
+<tr><td>01/12/2025</td><td>Angular setup</td><td>Project created</td><td>Angular CLI</td></tr>
+<tr><td>02/12/2025</td><td>Components</td><td>Components built</td><td>Angular</td></tr>
+<tr><td>03/12/2025</td><td>Data binding</td><td>Binding implemented</td><td>Angular</td></tr>
+<tr><td>04/12/2025</td><td>Dashboard UI</td><td>Dashboard layout</td><td>Angular</td></tr>
+<tr><td>05/12/2025</td><td>Code optimization</td><td>Structure improved</td><td>TypeScript</td></tr>
+</table>
+
+<div class="signature">
+<div class="sign-box"><div class="line">Student Signature</div></div>
+<div class="sign-box"><div class="line">Supervisor Signature & Stamp</div></div>
+</div>
+</div></div>
+
+<!-- ================= WEEK 5 ================= -->
+<div class="page"><div class="container">
+<div class="header">CODEAT INFOTECH</div>
+
+<table>
+<tr>
+<td><b>Student Name:</b> <span class="studentName">Rahul Patel</span></td>
+<td><b>Enrollment No:</b> <span class="enrollNo">IT-001</span></td>
+</tr>
+<tr><td><b>Week:</b> Week 5</td><td><b>Date Range:</b> 08/12/2025 – 12/12/2025</td></tr>
+</table><br>
+
+<table>
+<tr><th>Date</th><th>Tasks Assigned</th><th>Tasks Completed</th><th>Tools Used</th></tr>
+<tr><td>08/12/2025</td><td>Angular routing</td><td>Routes configured</td><td>Angular</td></tr>
+<tr><td>09/12/2025</td><td>Services</td><td>API services built</td><td>RxJS</td></tr>
+<tr><td>10/12/2025</td><td>Tailwind integration</td><td>Styling added</td><td>Tailwind</td></tr>
+<tr><td>11/12/2025</td><td>Forms</td><td>Forms created</td><td>Angular</td></tr>
+<tr><td>12/12/2025</td><td>Testing</td><td>Bug fixes done</td><td>Angular</td></tr>
+</table>
+
+<div class="signature">
+<div class="sign-box"><div class="line">Student Signature</div></div>
+<div class="sign-box"><div class="line">Supervisor Signature & Stamp</div></div>
+</div>
+</div></div>
+
+<!-- ================= WEEK 6 ================= -->
+<div class="page"><div class="container">
+<div class="header">CODEAT INFOTECH</div>
+
+<table>
+<tr>
+<td><b>Student Name:</b> <span class="studentName">Rahul Patel</span></td>
+<td><b>Enrollment No:</b> <span class="enrollNo">IT-001</span></td>
+</tr>
+<tr><td><b>Week:</b> Week 6</td><td><b>Date Range:</b> 15/12/2025 – 19/12/2025</td></tr>
+</table><br>
+
+<table>
+<tr><th>Date</th><th>Tasks Assigned</th><th>Tasks Completed</th><th>Tools Used</th></tr>
+<tr><td>15/12/2025</td><td>Node.js basics</td><td>Runtime understanding</td><td>Node.js</td></tr>
+<tr><td>16/12/2025</td><td>Express setup</td><td>Server created</td><td>Express</td></tr>
+<tr><td>17/12/2025</td><td>REST API</td><td>CRUD endpoints</td><td>Postman</td></tr>
+<tr><td>18/12/2025</td><td>API testing</td><td>Tested APIs</td><td>Postman</td></tr>
+<tr><td>19/12/2025</td><td>Integration</td><td>Frontend connected</td><td>Angular</td></tr>
+</table>
+
+<div class="signature">
+<div class="sign-box"><div class="line">Student Signature</div></div>
+<div class="sign-box"><div class="line">Supervisor Signature & Stamp</div></div>
+</div>
+</div></div>
+
+<!-- ================= WEEK 7 ================= -->
+<div class="page"><div class="container">
+<div class="header">CODEAT INFOTECH</div>
+
+<table>
+<tr>
+<td><b>Student Name:</b> <span class="studentName">Rahul Patel</span></td>
+<td><b>Enrollment No:</b> <span class="enrollNo">IT-001</span></td>
+</tr>
+<tr><td><b>Week:</b> Week 7</td><td><b>Date Range:</b> 22/12/2025 – 26/12/2025</td></tr>
+</table><br>
+
+<table>
+<tr><th>Date</th><th>Tasks Assigned</th><th>Tasks Completed</th><th>Tools Used</th></tr>
+<tr><td>22/12/2025</td><td>Database schema</td><td>Schema designed</td><td>MySQL</td></tr>
+<tr><td>23/12/2025</td><td>CRUD queries</td><td>Queries executed</td><td>MySQL</td></tr>
+<tr><td>24/12/2025</td><td>API connect DB</td><td>DB integrated</td><td>Node.js</td></tr>
+<tr><td>25/12/2025</td><td>Deployment prep</td><td>PM2 setup</td><td>PM2</td></tr>
+<tr><td>26/12/2025</td><td>VPS testing</td><td>Deployment tested</td><td>VPS</td></tr>
+</table>
+
+<div class="signature">
+<div class="sign-box"><div class="line">Student Signature</div></div>
+<div class="sign-box"><div class="line">Supervisor Signature & Stamp</div></div>
+</div>
+</div></div>
+
+<!-- ================= WEEK 8 ================= -->
+<div class="page"><div class="container">
+<div class="header">CODEAT INFOTECH</div>
+
+<table>
+<tr>
+<td><b>Student Name:</b> <span class="studentName">Rahul Patel</span></td>
+<td><b>Enrollment No:</b> <span class="enrollNo">IT-001</span></td>
+</tr>
+<tr><td><b>Week:</b> Week 8</td><td><b>Date Range:</b> 29/12/2025 – 31/12/2025</td></tr>
+</table><br>
+
+<table>
+<tr><th>Date</th><th>Tasks Assigned</th><th>Tasks Completed</th><th>Tools Used</th></tr>
+<tr><td>29/12/2025</td><td>Python setup</td><td>Environment ready</td><td>Python</td></tr>
+<tr><td>30/12/2025</td><td>ML basics</td><td>Model created</td><td>Scikit-learn</td></tr>
+<tr><td>31/12/2025</td><td>API integration</td><td>ML API connected</td><td>Flask</td></tr>
+</table>
+
+<div class="signature">
+<div class="sign-box"><div class="line">Student Signature</div></div>
+<div class="sign-box"><div class="line">Supervisor Signature & Stamp</div></div>
+</div>
+</div></div>
+
+</body>
+</html>

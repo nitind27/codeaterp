@@ -153,15 +153,15 @@ export default function Layout({ children, user }) {
   const year = new Date().getFullYear();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#1A656D]/20 via-[#0A2A2D] to-[#030a0b] text-codeat-silver">
-      <div className="flex min-h-screen w-full">
+    <div className="h-screen overflow-hidden bg-gradient-to-b from-[#1A656D]/20 via-[#0A2A2D] to-[#030a0b] text-codeat-silver">
+      <div className="flex h-screen w-full">
         {/* Sidebar */}
         <aside
           className={`${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          } glass-panel fixed inset-y-0 left-0 z-40 w-72 border-r border-[#12474c]/30 bg-[#0A2A2D]/95 px-5 py-6 transition-transform duration-300 lg:static lg:translate-x-0`}
+          } glass-panel fixed inset-y-0 left-0 z-40 w-72 border-r border-[#12474c]/30 bg-[#0A2A2D]/95 px-5 py-6 transition-transform duration-300 lg:static lg:translate-x-0 flex flex-col h-full`}
         >
-          <div className="flex h-full flex-col gap-6">
+          <div className="flex flex-col gap-6 h-full min-h-0">
             <div className="flex items-center justify-between gap-3">
               <Link href="/dashboard" className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#1A656D] to-[#31747c] text-lg font-bold text-white shadow-lg shadow-[#1A656D]/50">
@@ -188,9 +188,9 @@ export default function Layout({ children, user }) {
               <p className="text-[#e8f0f0] font-semibold">Control and monitor every module from one place.</p>
             </div>
 
-            <nav className="flex-1 overflow-y-auto">
+            <nav className="flex-1 overflow-y-auto min-h-0">
               <p className="mb-3 text-[11px] uppercase tracking-[0.45em] text-[#5f9399]/70">Navigation</p>
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 pr-2">
                 {items.map((item) => {
                   const isActive = pathname === item.path;
                   return (
@@ -246,7 +246,7 @@ export default function Layout({ children, user }) {
         </aside>
 
         {/* Main Content */}
-        <div className="flex min-h-screen flex-1 flex-col">
+        <div className="flex flex-1 flex-col h-full min-h-0">
           <header className="sticky top-0 z-30 border-b border-[#12474c]/30 bg-[#0A2A2D]/80 backdrop-blur-2xl">
             <div className="flex flex-wrap items-center gap-4 px-5 py-4">
               <button
@@ -331,7 +331,7 @@ export default function Layout({ children, user }) {
             </div>
           </header>
 
-          <main className="flex-1 overflow-auto">
+          <main className="flex-1 overflow-y-auto min-h-0">
             <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-10">
               {children}
             </div>

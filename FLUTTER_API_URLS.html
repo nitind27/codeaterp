@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flutter API URLs - CodeatERP</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+        }
+
+        .base-url-section {
+            background: linear-gradient(135deg, #2d2d44 0%, #1a1a2e 100%);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid #3d3d5c;
+        }
+
+        .base-url-section h2 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .base-url-input {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .base-url-input input {
+            flex: 1;
+            min-width: 250px;
+            padding: 15px 20px;
+            border-radius: 10px;
+            border: 2px solid #3d3d5c;
+            background: #1a1a2e;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .base-url-input input:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+
+        .base-url-input button {
+            padding: 15px 30px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .base-url-input button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .api-section {
+            background: linear-gradient(135deg, #2d2d44 0%, #1a1a2e 100%);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid #3d3d5c;
+        }
+
+        .api-section h2 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            color: #fff;
+            font-size: 1.3rem;
+        }
+
+        .api-section h2 .icon {
+            font-size: 1.5rem;
+        }
+
+        .api-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #1a1a2e;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            border: 1px solid #3d3d5c;
+            transition: border-color 0.2s;
+        }
+
+        .api-item:hover {
+            border-color: #00d4ff;
+        }
+
+        .method {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            min-width: 70px;
+            text-align: center;
+        }
+
+        .method.get { background: #10b981; color: #fff; }
+        .method.post { background: #3b82f6; color: #fff; }
+        .method.put { background: #f59e0b; color: #fff; }
+        .method.delete { background: #ef4444; color: #fff; }
+
+        .url-display {
+            flex: 1;
+            font-family: 'Consolas', 'Monaco', monospace;
+            color: #00d4ff;
+            word-break: break-all;
+            min-width: 200px;
+        }
+
+        .copy-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 1px solid #3d3d5c;
+            background: transparent;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .copy-btn:hover {
+            background: #3d3d5c;
+            border-color: #00d4ff;
+        }
+
+        .copy-btn.copied {
+            background: #10b981;
+            border-color: #10b981;
+        }
+
+        .description {
+            width: 100%;
+            color: #888;
+            font-size: 0.85rem;
+            margin-top: 10px;
+            padding-left: 85px;
+        }
+
+        .test-section {
+            background: linear-gradient(135deg, #2d2d44 0%, #1a1a2e 100%);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid #3d3d5c;
+        }
+
+        .test-section h2 {
+            color: #f59e0b;
+            margin-bottom: 20px;
+        }
+
+        .test-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .test-area {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .test-box {
+            background: #1a1a2e;
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid #3d3d5c;
+        }
+
+        .test-box h3 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .test-box pre {
+            background: #0d0d1a;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            color: #10b981;
+        }
+
+        .test-box code {
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #10b981;
+            color: #fff;
+            padding: 15px 25px;
+            border-radius: 10px;
+            display: none;
+            animation: slideIn 0.3s ease;
+            z-index: 1000;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            margin-left: 10px;
+        }
+
+        .badge.auth { background: #ef4444; }
+        .badge.admin { background: #7b2cbf; }
+        .badge.hr { background: #3b82f6; }
+
+        .quick-copy {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .quick-copy button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid #3d3d5c;
+            background: #1a1a2e;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-copy button:hover {
+            background: #3d3d5c;
+            border-color: #00d4ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Flutter API URLs</h1>
+        <p class="subtitle">CodeatERP - All API Endpoints for Flutter App</p>
+
+        <!-- Base URL Configuration -->
+        <div class="base-url-section">
+            <h2>⚙️ Base URL Configuration</h2>
+            <div class="base-url-input">
+                <input type="text" id="baseUrl" value="http://localhost:3000" placeholder="Enter your server URL">
+                <button onclick="updateAllUrls()">Update All URLs</button>
+            </div>
+            <div class="quick-copy">
+                <button onclick="setBaseUrl('http://localhost:3000')">localhost:3000</button>
+                <button onclick="setBaseUrl('http://192.168.1.100:3000')">192.168.1.100:3000</button>
+                <button onclick="setBaseUrl('http://10.0.2.2:3000')">Android Emulator</button>
+            </div>
+        </div>
+
+        <!-- Authentication APIs -->
+        <div class="api-section">
+            <h2><span class="icon">🔐</span> Authentication APIs</h2>
+            
+            <div class="api-item">
+                <span class="method post">POST</span>
+                <span class="url-display" data-path="/flutter_api/auth/login"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <button class="copy-btn" onclick="copyWithBody(this, 'login')">📝 Copy with Body</button>
+                <div class="description">Login - Use <code>skipLocationCheck: true</code> to bypass location</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method get">GET</span>
+                <span class="url-display" data-path="/flutter_api/auth/me"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <span class="badge auth">Auth Required</span>
+                <div class="description">Get current logged in user details</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method post">POST</span>
+                <span class="url-display" data-path="/flutter_api/auth/register"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <span class="badge admin">Admin/HR</span>
+                <div class="description">Register new user (Admin/HR only)</div>
+            </div>
+        </div>
+
+        <!-- Dashboard API -->
+        <div class="api-section">
+            <h2><span class="icon">📊</span> Dashboard API</h2>
+            
+            <div class="api-item">
+                <span class="method get">GET</span>
+                <span class="url-display" data-path="/flutter_api/dashboard"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <span class="badge auth">Auth Required</span>
+                <div class="description">Get complete dashboard data (attendance, tasks, leaves, etc.)</div>
+            </div>
+        </div>
+
+        <!-- Attendance APIs -->
+        <div class="api-section">
+            <h2><span class="icon">⏰</span> Attendance APIs</h2>
+            
+            <div class="api-item">
+                <span class="method get">GET</span>
+                <span class="url-display" data-path="/flutter_api/attendance"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <span class="badge auth">Auth Required</span>
+                <div class="description">Get attendance records (supports ?start_date=&end_date=&page=&limit=)</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method get">GET</span>
+                <span class="url-display" data-path="/flutter_api/attendance/today"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <span class="badge auth">Auth Required</span>
+                <div class="description">Get today's attendance status</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method post">POST</span>
+                <span class="url-display" data-path="/flutter_api/attendance"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <button class="copy-btn" onclick="copyWithBody(this, 'clockin')">📝 Copy with Body</button>
+                <div class="description">Clock In</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method put">PUT</span>
+                <span class="url-display" data-path="/flutter_api/attendance"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <button class="copy-btn" onclick="copyWithBody(this, 'clockout')">📝 Copy with Body</button>
+                <div class="description">Clock Out</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method get">GET</span>
+                <span class="url-display" data-path="/flutter_api/attendance/{id}"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <div class="description">Get single attendance record</div>
+            </div>
+        </div>
+
+        <!-- Employee APIs -->
+        <div class="api-section">
+            <h2><span class="icon">👥</span> Employee APIs</h2>
+            
+            <div class="api-item">
+                <span class="method get">GET</span>
+                <span class="url-display" data-path="/flutter_api/employees"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <span class="badge admin">Admin/HR/PM</span>
+                <div class="description">Get all employees (supports ?search=&department=&status=&page=&limit=)</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method post">POST</span>
+                <span class="url-display" data-path="/flutter_api/employees"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <span class="badge admin">Admin/HR</span>
+                <div class="description">Create new employee</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method get">GET</span>
+                <span class="url-display" data-path="/flutter_api/employees/{id}"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <div class="description">Get single employee details</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method put">PUT</span>
+                <span class="url-display" data-path="/flutter_api/employees/{id}"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <div class="description">Update employee</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method delete">DELETE</span>
+                <span class="url-display" data-path="/flutter_api/employees/{id}"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <span class="badge admin">Admin/HR</span>
+                <div class="description">Delete employee</div>
+            </div>
+        </div>
+
+        <!-- Leave APIs -->
+        <div class="api-section">
+            <h2><span class="icon">🏖️</span> Leave APIs</h2>
+            
+            <div class="api-item">
+                <span class="method get">GET</span>
+                <span class="url-display" data-path="/flutter_api/leave"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <div class="description">Get leave applications (supports ?status=&start_date=&end_date=)</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method post">POST</span>
+                <span class="url-display" data-path="/flutter_api/leave"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <button class="copy-btn" onclick="copyWithBody(this, 'applyleave')">📝 Copy with Body</button>
+                <div class="description">Apply for leave</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method put">PUT</span>
+                <span class="url-display" data-path="/flutter_api/leave/{id}"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <span class="badge admin">Admin/HR</span>
+                <div class="description">Approve/Reject leave</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method get">GET</span>
+                <span class="url-display" data-path="/flutter_api/leave/balance"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <div class="description">Get leave balance</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method get">GET</span>
+                <span class="url-display" data-path="/flutter_api/leave/types"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <div class="description">Get all leave types</div>
+            </div>
+        </div>
+
+        <!-- Project APIs -->
+        <div class="api-section">
+            <h2><span class="icon">📋</span> Project APIs</h2>
+            
+            <div class="api-item">
+                <span class="method get">GET</span>
+                <span class="url-display" data-path="/flutter_api/projects"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <div class="description">Get all projects</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method post">POST</span>
+                <span class="url-display" data-path="/flutter_api/projects"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <span class="badge admin">Admin/HR/PM</span>
+                <div class="description">Create new project</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method get">GET</span>
+                <span class="url-display" data-path="/flutter_api/projects/{id}"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <div class="description">Get single project with members & tasks</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method put">PUT</span>
+                <span class="url-display" data-path="/flutter_api/projects/{id}"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <div class="description">Update project</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method delete">DELETE</span>
+                <span class="url-display" data-path="/flutter_api/projects/{id}"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <span class="badge admin">Admin/HR</span>
+                <div class="description">Delete project</div>
+            </div>
+        </div>
+
+        <!-- Task APIs -->
+        <div class="api-section">
+            <h2><span class="icon">✅</span> Task APIs</h2>
+            
+            <div class="api-item">
+                <span class="method get">GET</span>
+                <span class="url-display" data-path="/flutter_api/tasks"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <div class="description">Get all tasks (supports ?project_id=&status=&priority=)</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method post">POST</span>
+                <span class="url-display" data-path="/flutter_api/tasks"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <span class="badge admin">Admin/HR/PM</span>
+                <div class="description">Create new task</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method get">GET</span>
+                <span class="url-display" data-path="/flutter_api/tasks/{id}"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <div class="description">Get single task</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method put">PUT</span>
+                <span class="url-display" data-path="/flutter_api/tasks/{id}"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <div class="description">Update task (employees can only update status & actual_hours)</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method delete">DELETE</span>
+                <span class="url-display" data-path="/flutter_api/tasks/{id}"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <span class="badge admin">Admin/HR/PM</span>
+                <div class="description">Delete task</div>
+            </div>
+        </div>
+
+        <!-- Holiday APIs -->
+        <div class="api-section">
+            <h2><span class="icon">🎉</span> Holiday APIs</h2>
+            
+            <div class="api-item">
+                <span class="method get">GET</span>
+                <span class="url-display" data-path="/flutter_api/holidays"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <div class="description">Get holidays (supports ?year=&upcoming=true)</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method post">POST</span>
+                <span class="url-display" data-path="/flutter_api/holidays"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <span class="badge admin">Admin/HR</span>
+                <div class="description">Create holiday</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method put">PUT</span>
+                <span class="url-display" data-path="/flutter_api/holidays/{id}"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <span class="badge admin">Admin/HR</span>
+                <div class="description">Update holiday</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method delete">DELETE</span>
+                <span class="url-display" data-path="/flutter_api/holidays/{id}"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <span class="badge admin">Admin/HR</span>
+                <div class="description">Delete holiday</div>
+            </div>
+        </div>
+
+        <!-- Other APIs -->
+        <div class="api-section">
+            <h2><span class="icon">📦</span> Other APIs</h2>
+            
+            <div class="api-item">
+                <span class="method get">GET</span>
+                <span class="url-display" data-path="/flutter_api/achievements"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <div class="description">Get achievements</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method post">POST</span>
+                <span class="url-display" data-path="/flutter_api/achievements"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <span class="badge admin">Admin/HR</span>
+                <div class="description">Create achievement</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method get">GET</span>
+                <span class="url-display" data-path="/flutter_api/complaints"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <div class="description">Get complaints</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method post">POST</span>
+                <span class="url-display" data-path="/flutter_api/complaints"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <div class="description">Submit complaint</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method get">GET</span>
+                <span class="url-display" data-path="/flutter_api/interviews"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <span class="badge admin">Admin/HR</span>
+                <div class="description">Get interviews</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method post">POST</span>
+                <span class="url-display" data-path="/flutter_api/interviews"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <span class="badge admin">Admin/HR</span>
+                <div class="description">Schedule interview</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method get">GET</span>
+                <span class="url-display" data-path="/flutter_api/anniversaries"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <div class="description">Get upcoming birthdays & work anniversaries</div>
+            </div>
+        </div>
+
+        <!-- Chat APIs -->
+        <div class="api-section">
+            <h2><span class="icon">💬</span> Chat APIs</h2>
+            
+            <div class="api-item">
+                <span class="method get">GET</span>
+                <span class="url-display" data-path="/flutter_api/channels"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <div class="description">Get all channels</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method post">POST</span>
+                <span class="url-display" data-path="/flutter_api/channels"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <div class="description">Create channel</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method get">GET</span>
+                <span class="url-display" data-path="/flutter_api/messages?channelId={id}"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <div class="description">Get messages for a channel</div>
+            </div>
+
+            <div class="api-item">
+                <span class="method post">POST</span>
+                <span class="url-display" data-path="/flutter_api/messages"></span>
+                <button class="copy-btn" onclick="copyUrl(this)">📋 Copy</button>
+                <div class="description">Send message</div>
+            </div>
+        </div>
+
+        <!-- Test Section -->
+        <div class="test-section">
+            <h2>🧪 Sample Request Bodies</h2>
+            <div class="test-area">
+                <div class="test-box">
+                    <h3>Login Request</h3>
+                    <pre><code>{
+  "email": "user@example.com",
+  "password": "password123",
+  "skipLocationCheck": true
+}</code></pre>
+                    <button class="copy-btn" onclick="copyText(this, 'login-body')" style="margin-top: 10px;">📋 Copy Body</button>
+                </div>
+
+                <div class="test-box">
+                    <h3>Clock In Request</h3>
+                    <pre><code>{
+  "location": {
+    "latitude": 21.1877888,
+    "longitude": 72.8367104
+  },
+  "skipLocationCheck": true
+}</code></pre>
+                    <button class="copy-btn" onclick="copyText(this, 'clockin-body')" style="margin-top: 10px;">📋 Copy Body</button>
+                </div>
+
+                <div class="test-box">
+                    <h3>Apply Leave Request</h3>
+                    <pre><code>{
+  "leaveTypeId": 1,
+  "startDate": "2025-12-20",
+  "endDate": "2025-12-21",
+  "durationType": "full_day",
+  "reason": "Personal work"
+}</code></pre>
+                    <button class="copy-btn" onclick="copyText(this, 'leave-body')" style="margin-top: 10px;">📋 Copy Body</button>
+                </div>
+
+                <div class="test-box">
+                    <h3>Headers (for authenticated requests)</h3>
+                    <pre><code>Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN_HERE</code></pre>
+                    <button class="copy-btn" onclick="copyText(this, 'headers')" style="margin-top: 10px;">📋 Copy Headers</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">✅ Copied to clipboard!</div>
+
+    <script>
+        let baseUrl = 'http://localhost:3000';
+
+        const requestBodies = {
+            login: JSON.stringify({
+                email: "user@example.com",
+                password: "password123",
+                skipLocationCheck: true
+            }, null, 2),
+            clockin: JSON.stringify({
+                location: { latitude: 21.1877888, longitude: 72.8367104 },
+                skipLocationCheck: true
+            }, null, 2),
+            clockout: JSON.stringify({
+                location: { latitude: 21.1877888, longitude: 72.8367104 },
+                skipLocationCheck: true
+            }, null, 2),
+            applyleave: JSON.stringify({
+                leaveTypeId: 1,
+                startDate: "2025-12-20",
+                endDate: "2025-12-21",
+                durationType: "full_day",
+                reason: "Personal work"
+            }, null, 2)
+        };
+
+        function updateAllUrls() {
+            baseUrl = document.getElementById('baseUrl').value.replace(/\/$/, '');
+            document.querySelectorAll('.url-display').forEach(el => {
+                const path = el.getAttribute('data-path');
+                el.textContent = baseUrl + path;
+            });
+            showToast('All URLs updated!');
+        }
+
+        function setBaseUrl(url) {
+            document.getElementById('baseUrl').value = url;
+            updateAllUrls();
+        }
+
+        function copyUrl(btn) {
+            const urlElement = btn.parentElement.querySelector('.url-display');
+            const url = urlElement.textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                btn.classList.add('copied');
+                btn.innerHTML = '✅ Copied!';
+                showToast();
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btn.innerHTML = '📋 Copy';
+                }, 2000);
+            });
+        }
+
+        function copyWithBody(btn, type) {
+            const urlElement = btn.parentElement.querySelector('.url-display');
+            const url = urlElement.textContent;
+            const method = btn.parentElement.querySelector('.method').textContent;
+            const body = requestBodies[type] || '{}';
+            
+            const fullRequest = `URL: ${url}
+Method: ${method}
+Headers:
+  Content-Type: application/json
+  Authorization: Bearer YOUR_TOKEN_HERE
+
+Body:
+${body}`;
+
+            navigator.clipboard.writeText(fullRequest).then(() => {
+                btn.classList.add('copied');
+                btn.innerHTML = '✅ Copied!';
+                showToast('Full request copied!');
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btn.innerHTML = '📝 Copy with Body';
+                }, 2000);
+            });
+        }
+
+        function copyText(btn, type) {
+            const texts = {
+                'login-body': requestBodies.login,
+                'clockin-body': requestBodies.clockin,
+                'leave-body': requestBodies.applyleave,
+                'headers': 'Content-Type: application/json\nAuthorization: Bearer YOUR_TOKEN_HERE'
+            };
+            
+            navigator.clipboard.writeText(texts[type]).then(() => {
+                btn.classList.add('copied');
+                btn.innerHTML = '✅ Copied!';
+                showToast();
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btn.innerHTML = '📋 Copy';
+                }, 2000);
+            });
+        }
+
+        function showToast(message = '✅ Copied to clipboard!') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 2000);
+        }
+
+        // Initialize URLs on page load
+        updateAllUrls();
+    </script>
+</body>
+</html>
+

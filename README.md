@@ -63,6 +63,34 @@ A comprehensive Enterprise Resource Planning (ERP) web application built with Ne
 - Email reminders 1 week before birthday
 - Automatic notification system
 
+### 📈 Performance Management System
+- Performance reviews and evaluations
+- Goal setting and progress tracking
+- KPI monitoring and measurement
+- Competency and skills assessment
+- Development planning
+
+### 🎓 Training & Development
+- Training courses management
+- Employee certifications tracking
+- Skills inventory and assessment
+- Course enrollments and completion
+- Learning paths and development plans
+
+### 💰 Expense Management
+- Expense claim submission
+- Multi-level approval workflow
+- Receipt attachment support
+- Expense categories and policies
+- Expense reporting and analytics
+
+### 💼 Asset Management
+- Company assets tracking
+- Asset assignment to employees
+- Maintenance scheduling
+- Depreciation calculation
+- Asset lifecycle management
+
 ### 📧 Email Notifications
 - Onboarding emails
 - Leave approval/rejection notifications
