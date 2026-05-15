@@ -6,8 +6,8 @@
     "dev": "next dev",
     "dev:socket": "node server.js",
     "build": "next build",
-    "start": "next start",
-    "start:socket": "NODE_ENV=production node server.js",
+    "start": "NODE_ENV=production node server.js",
+    "start:next": "next start",
     "lint": "eslint"
   },
   "dependencies": {

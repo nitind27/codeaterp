@@ -42,11 +42,14 @@ export default function DiscussionsPage() {
   const initSocket = async (token) => {
     try {
       const { io } = await import('socket.io-client');
-      const s = io(window.location.origin, {
+      const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || window.location.origin;
+      const s = io(socketUrl, {
         auth: { token },
         transports: ['websocket', 'polling'],
         reconnection: true,
         reconnectionDelay: 1000,
+        reconnectionAttempts: Infinity,
+        path: '/socket.io',
       });
       socketRef.current = s;
 

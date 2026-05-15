@@ -35,10 +35,16 @@ app.prepare().then(() => {
 
   const io = new Server(httpServer, {
     cors: {
-      origin: dev ? '*' : process.env.FRONTEND_URL || '*',
+      origin: dev
+        ? '*'
+        : [
+            process.env.FRONTEND_URL || 'https://erp.codeatinfotech.com',
+            'https://erp.codeatinfotech.com',
+          ],
       methods: ['GET', 'POST'],
-      credentials: true
-    }
+      credentials: true,
+    },
+    transports: ['websocket', 'polling'],
   });
 
   // Authentication middleware for Socket.io
