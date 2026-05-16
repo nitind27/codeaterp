@@ -24,6 +24,10 @@ export default function FeesPage() {
   const [deletePaymentSubmitting, setDeletePaymentSubmitting] = useState(false);
   const [showReminderModal, setShowReminderModal] = useState(false);
   const [reminderTarget, setReminderTarget] = useState(null);
+  const [reminderData, setReminderData] = useState({ requestAmount: '', dueDate: '', notes: '' });
+  const [reminderSending, setReminderSending] = useState(false);
+  const [showReminderModal, setShowReminderModal] = useState(false);
+  const [reminderTarget, setReminderTarget] = useState(null);
   const [reminderData, setReminderData] = useState({ notes: '', dueDate: '' });
   const [reminderSending, setReminderSending] = useState(false);
   const [expandedFee, setExpandedFee] = useState(null);
@@ -242,6 +246,43 @@ export default function FeesPage() {
       } else {
         toast.error(data.error || 'Failed to send reminder');
       }
+    } catch { toast.error('Error sending reminder'); }
+    finally { setReminderSending(false); }
+  };
+
+  const openReminder = (fee) => {
+    setReminderTarget(fee);
+    setReminderData({ requestAmount: '', dueDate: '', notes: '' });
+    setShowReminderModal(true);
+  };
+
+  const handleSendReminder = async (e) => {
+    e.preventDefault();
+    if (!reminderTarget) return;
+    const reqAmt = parseFloat(reminderData.requestAmount);
+    if (!reqAmt || reqAmt <= 0) { toast.error('Please enter a valid amount to request'); return; }
+    if (reqAmt > reminderTarget.remainingAmount) {
+      toast.error(`Amount cannot exceed remaining balance (${fmt(reminderTarget.remainingAmount)})`); return;
+    }
+    setReminderSending(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/fees/reminder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          feesId: reminderTarget.id,
+          requestAmount: reqAmt,
+          dueDate: reminderData.dueDate || null,
+          notes: reminderData.notes || null,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(`Reminder sent to ${reminderTarget.employeeName}!`);
+        setShowReminderModal(false);
+        setReminderTarget(null);
+      } else toast.error(data.error || 'Failed to send reminder');
     } catch { toast.error('Error sending reminder'); }
     finally { setReminderSending(false); }
   };
@@ -654,6 +695,15 @@ export default function FeesPage() {
                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 Edit Fees
                               </button>
+                              {fee.remainingAmount > 0 && (
+                                <button
+                                  onClick={() => openReminder(fee)}
+                                  className="px-3 py-1.5 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg hover:bg-amber-500/30 transition text-xs font-semibold flex items-center gap-1"
+                                >
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                                  Reminder
+                                </button>
+                              )}
                               <button
                                 onClick={() => openReminder(fee)}
                                 className="px-3 py-1.5 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg hover:bg-amber-500/30 transition text-xs font-semibold flex items-center gap-1"
@@ -1095,8 +1145,8 @@ export default function FeesPage() {
                 </button>
               </div>
 
-              {/* Fees summary */}
-              <div className="mx-5 mt-5 grid grid-cols-3 gap-3">
+              {/* Current fees summary */}
+              <div className="mx-5 mt-5 grid grid-cols-3 gap-2">
                 {[
                   { label: 'Total Fees', value: fmt(reminderTarget.totalFees), color: 'text-codeat-silver' },
                   { label: 'Paid', value: fmt(reminderTarget.paidAmount), color: 'text-green-400' },
@@ -1110,9 +1160,61 @@ export default function FeesPage() {
               </div>
 
               <form onSubmit={handleSendReminder} className="p-5 space-y-4">
+
+                {/* Amount to request — REQUIRED */}
                 <div>
                   <label className="block text-codeat-silver text-sm font-semibold mb-2">
-                    Due Date <span className="text-codeat-gray text-xs font-normal">(optional)</span>
+                    Amount to Request <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="1"
+                    max={reminderTarget.remainingAmount}
+                    value={reminderData.requestAmount}
+                    onChange={e => setReminderData({ ...reminderData, requestAmount: e.target.value })}
+                    className="input-field"
+                    placeholder={`Max: ${fmt(reminderTarget.remainingAmount)}`}
+                    required
+                  />
+                  <p className="text-codeat-gray/60 text-xs mt-1">
+                    Maximum payable: {fmt(reminderTarget.remainingAmount)}
+                  </p>
+                </div>
+
+                {/* Live preview — after this payment */}
+                {reminderData.requestAmount && parseFloat(reminderData.requestAmount) > 0 && parseFloat(reminderData.requestAmount) <= reminderTarget.remainingAmount && (
+                  <div className="bg-[#0d2f32] border border-[#1A656D]/40 rounded-xl p-4 space-y-2">
+                    <p className="text-[#7dd3d8] text-xs font-bold uppercase tracking-wider mb-3">📊 After This Payment</p>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-white/50">Total Fees</span>
+                      <span className="text-white font-semibold">{fmt(reminderTarget.totalFees)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-white/50">Already Paid</span>
+                      <span className="text-green-400 font-semibold">{fmt(reminderTarget.paidAmount)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-amber-300 font-semibold">Pay Now (Requested)</span>
+                      <span className="text-amber-300 font-bold">{fmt(parseFloat(reminderData.requestAmount))}</span>
+                    </div>
+                    <div className="h-px bg-white/10"/>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-white/50">Balance After Payment</span>
+                      <span className={`font-bold ${(reminderTarget.remainingAmount - parseFloat(reminderData.requestAmount)) <= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {fmt(Math.max(0, reminderTarget.remainingAmount - parseFloat(reminderData.requestAmount)))}
+                      </span>
+                    </div>
+                    {(reminderTarget.remainingAmount - parseFloat(reminderData.requestAmount)) <= 0 && (
+                      <p className="text-green-400 text-xs text-center font-semibold">✅ Fees will be fully cleared!</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Due date */}
+                <div>
+                  <label className="block text-codeat-silver text-sm font-semibold mb-2">
+                    Pay By Date <span className="text-red-400">*</span>
                   </label>
                   <input
                     type="date"
@@ -1120,8 +1222,11 @@ export default function FeesPage() {
                     onChange={e => setReminderData({ ...reminderData, dueDate: e.target.value })}
                     className="input-field"
                     min={new Date().toISOString().split('T')[0]}
+                    required
                   />
                 </div>
+
+                {/* Note */}
                 <div>
                   <label className="block text-codeat-silver text-sm font-semibold mb-2">
                     Note to Intern <span className="text-codeat-gray text-xs font-normal">(optional)</span>
@@ -1130,13 +1235,13 @@ export default function FeesPage() {
                     value={reminderData.notes}
                     onChange={e => setReminderData({ ...reminderData, notes: e.target.value })}
                     className="input-field resize-none"
-                    rows={3}
-                    placeholder="e.g. Please clear your dues before the end of this month..."
+                    rows={2}
+                    placeholder="e.g. Please clear dues before month end..."
                   />
                 </div>
 
                 <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-xs text-amber-300">
-                  📧 A reminder email will be sent to <strong>{reminderTarget.email}</strong> with the full fees breakdown.
+                  📧 Email will be sent to <strong>{reminderTarget.email}</strong> with full payment breakdown.
                 </div>
 
                 <div className="flex gap-3 pt-1 border-t border-codeat-muted/30">
@@ -1148,6 +1253,14 @@ export default function FeesPage() {
                     }
                   </button>
                   <button type="button" onClick={() => { setShowReminderModal(false); setReminderTarget(null); }} disabled={reminderSending}
+                    className="flex-1 py-3 bg-codeat-muted/50 text-codeat-silver rounded-xl font-semibold hover:bg-codeat-muted transition border border-codeat-muted/30 disabled:opacity-50">
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
                     className="flex-1 py-3 bg-codeat-muted/50 text-codeat-silver rounded-xl font-semibold hover:bg-codeat-muted transition border border-codeat-muted/30 disabled:opacity-50">
                     Cancel
                   </button>

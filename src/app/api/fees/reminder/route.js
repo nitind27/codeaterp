@@ -14,10 +14,10 @@ export async function POST(req) {
       );
     }
 
-    const { feesId, notes, dueDate } = await req.json();
+    const { feesId, requestAmount, notes, dueDate } = await req.json();
 
-    if (!feesId) {
-      return NextResponse.json({ error: 'feesId is required' }, { status: 400 });
+    if (!feesId || !requestAmount || parseFloat(requestAmount) <= 0) {
+      return NextResponse.json({ error: 'feesId and a valid requestAmount are required' }, { status: 400 });
     }
 
     // Fetch fees record with intern details
@@ -61,6 +61,7 @@ export async function POST(req) {
       totalFees:       parseFloat(fee.total_fees),
       paidAmount:      parseFloat(fee.paid_amount),
       remainingAmount: parseFloat(fee.remaining_amount),
+      requestAmount:   parseFloat(requestAmount),
       dueDate:         dueDate || null,
       notes:           notes   || null,
       adminName,
