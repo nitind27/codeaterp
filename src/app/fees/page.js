@@ -22,6 +22,10 @@ export default function FeesPage() {
   const [showDeletePaymentModal, setShowDeletePaymentModal] = useState(false);
   const [deletePaymentTarget, setDeletePaymentTarget] = useState(null);
   const [deletePaymentSubmitting, setDeletePaymentSubmitting] = useState(false);
+  const [showReminderModal, setShowReminderModal] = useState(false);
+  const [reminderTarget, setReminderTarget] = useState(null);
+  const [reminderData, setReminderData] = useState({ notes: '', dueDate: '' });
+  const [reminderSending, setReminderSending] = useState(false);
   const [expandedFee, setExpandedFee] = useState(null);
   const [selectedIntern, setSelectedIntern] = useState(null);
   const [feesFormData, setFeesFormData] = useState({
@@ -207,6 +211,39 @@ export default function FeesPage() {
       } else toast.error(data.error || 'Failed to delete payment');
     } catch { toast.error('Error deleting payment'); }
     finally { setDeletePaymentSubmitting(false); }
+  };
+
+  const openReminder = (fee) => {
+    setReminderTarget(fee);
+    setReminderData({ notes: '', dueDate: '' });
+    setShowReminderModal(true);
+  };
+
+  const handleSendReminder = async (e) => {
+    e.preventDefault();
+    if (!reminderTarget) return;
+    setReminderSending(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/fees/reminder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          feesId: reminderTarget.id,
+          notes: reminderData.notes || null,
+          dueDate: reminderData.dueDate || null,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(`Reminder sent to ${reminderTarget.employeeName}!`);
+        setShowReminderModal(false);
+        setReminderTarget(null);
+      } else {
+        toast.error(data.error || 'Failed to send reminder');
+      }
+    } catch { toast.error('Error sending reminder'); }
+    finally { setReminderSending(false); }
   };
 
   const downloadReceipt = async (paymentId) => {
@@ -616,6 +653,13 @@ export default function FeesPage() {
                               >
                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 Edit Fees
+                              </button>
+                              <button
+                                onClick={() => openReminder(fee)}
+                                className="px-3 py-1.5 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg hover:bg-amber-500/30 transition text-xs font-semibold flex items-center gap-1"
+                              >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                                Reminder
                               </button>
                             </>
                           )}
@@ -1030,6 +1074,85 @@ export default function FeesPage() {
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── REMINDER MODAL ── */}
+        {showReminderModal && reminderTarget && (
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
+            <div className="bg-codeat-mid rounded-2xl border border-amber-500/30 w-full max-w-md shadow-2xl">
+              <div className="flex items-center justify-between p-5 border-b border-codeat-muted/30">
+                <div>
+                  <h2 className="text-xl font-bold text-codeat-silver flex items-center gap-2">
+                    <span>🔔</span> Send Fees Reminder
+                  </h2>
+                  <p className="text-codeat-gray text-sm mt-0.5">{reminderTarget.employeeName} · {reminderTarget.employeeCode}</p>
+                </div>
+                <button onClick={() => { setShowReminderModal(false); setReminderTarget(null); }}
+                  className="p-2 hover:bg-codeat-muted/50 rounded-lg transition text-codeat-gray hover:text-codeat-silver">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+              </div>
+
+              {/* Fees summary */}
+              <div className="mx-5 mt-5 grid grid-cols-3 gap-3">
+                {[
+                  { label: 'Total Fees', value: fmt(reminderTarget.totalFees), color: 'text-codeat-silver' },
+                  { label: 'Paid', value: fmt(reminderTarget.paidAmount), color: 'text-green-400' },
+                  { label: 'Remaining', value: fmt(reminderTarget.remainingAmount), color: 'text-red-400' },
+                ].map(s => (
+                  <div key={s.label} className="bg-codeat-dark/50 rounded-xl p-3 border border-codeat-muted/20 text-center">
+                    <p className="text-codeat-gray text-[10px] uppercase tracking-wider mb-1">{s.label}</p>
+                    <p className={`${s.color} font-bold text-sm`}>{s.value}</p>
+                  </div>
+                ))}
+              </div>
+
+              <form onSubmit={handleSendReminder} className="p-5 space-y-4">
+                <div>
+                  <label className="block text-codeat-silver text-sm font-semibold mb-2">
+                    Due Date <span className="text-codeat-gray text-xs font-normal">(optional)</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={reminderData.dueDate}
+                    onChange={e => setReminderData({ ...reminderData, dueDate: e.target.value })}
+                    className="input-field"
+                    min={new Date().toISOString().split('T')[0]}
+                  />
+                </div>
+                <div>
+                  <label className="block text-codeat-silver text-sm font-semibold mb-2">
+                    Note to Intern <span className="text-codeat-gray text-xs font-normal">(optional)</span>
+                  </label>
+                  <textarea
+                    value={reminderData.notes}
+                    onChange={e => setReminderData({ ...reminderData, notes: e.target.value })}
+                    className="input-field resize-none"
+                    rows={3}
+                    placeholder="e.g. Please clear your dues before the end of this month..."
+                  />
+                </div>
+
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-xs text-amber-300">
+                  📧 A reminder email will be sent to <strong>{reminderTarget.email}</strong> with the full fees breakdown.
+                </div>
+
+                <div className="flex gap-3 pt-1 border-t border-codeat-muted/30">
+                  <button type="submit" disabled={reminderSending}
+                    className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-semibold hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                    {reminderSending
+                      ? <><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Sending…</>
+                      : <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>Send Reminder</>
+                    }
+                  </button>
+                  <button type="button" onClick={() => { setShowReminderModal(false); setReminderTarget(null); }} disabled={reminderSending}
+                    className="flex-1 py-3 bg-codeat-muted/50 text-codeat-silver rounded-xl font-semibold hover:bg-codeat-muted transition border border-codeat-muted/30 disabled:opacity-50">
+                    Cancel
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}
