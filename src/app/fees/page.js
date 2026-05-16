@@ -26,10 +26,6 @@ export default function FeesPage() {
   const [reminderTarget, setReminderTarget] = useState(null);
   const [reminderData, setReminderData] = useState({ requestAmount: '', dueDate: '', notes: '' });
   const [reminderSending, setReminderSending] = useState(false);
-  const [showReminderModal, setShowReminderModal] = useState(false);
-  const [reminderTarget, setReminderTarget] = useState(null);
-  const [reminderData, setReminderData] = useState({ notes: '', dueDate: '' });
-  const [reminderSending, setReminderSending] = useState(false);
   const [expandedFee, setExpandedFee] = useState(null);
   const [selectedIntern, setSelectedIntern] = useState(null);
   const [feesFormData, setFeesFormData] = useState({
@@ -215,39 +211,6 @@ export default function FeesPage() {
       } else toast.error(data.error || 'Failed to delete payment');
     } catch { toast.error('Error deleting payment'); }
     finally { setDeletePaymentSubmitting(false); }
-  };
-
-  const openReminder = (fee) => {
-    setReminderTarget(fee);
-    setReminderData({ notes: '', dueDate: '' });
-    setShowReminderModal(true);
-  };
-
-  const handleSendReminder = async (e) => {
-    e.preventDefault();
-    if (!reminderTarget) return;
-    setReminderSending(true);
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('/api/fees/reminder', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          feesId: reminderTarget.id,
-          notes: reminderData.notes || null,
-          dueDate: reminderData.dueDate || null,
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        toast.success(`Reminder sent to ${reminderTarget.employeeName}!`);
-        setShowReminderModal(false);
-        setReminderTarget(null);
-      } else {
-        toast.error(data.error || 'Failed to send reminder');
-      }
-    } catch { toast.error('Error sending reminder'); }
-    finally { setReminderSending(false); }
   };
 
   const openReminder = (fee) => {
@@ -1253,14 +1216,6 @@ export default function FeesPage() {
                     }
                   </button>
                   <button type="button" onClick={() => { setShowReminderModal(false); setReminderTarget(null); }} disabled={reminderSending}
-                    className="flex-1 py-3 bg-codeat-muted/50 text-codeat-silver rounded-xl font-semibold hover:bg-codeat-muted transition border border-codeat-muted/30 disabled:opacity-50">
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
                     className="flex-1 py-3 bg-codeat-muted/50 text-codeat-silver rounded-xl font-semibold hover:bg-codeat-muted transition border border-codeat-muted/30 disabled:opacity-50">
                     Cancel
                   </button>
