@@ -382,7 +382,7 @@ export default function LoginPage() {
                 {/* Footer */}
                 <div className="mt-8 text-center">
                   <p className="text-[#5f9399]/70 text-xs">
-                    © 2024 Codeat Infotech. All rights reserved.
+                    © 2026 Codeat Infotech. All rights reserved.
                   </p>
                 </div>
               </div>
