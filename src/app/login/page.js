@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {
@@ -161,14 +160,7 @@ export default function LoginPage() {
             {/* Logo */}
             <div className="mb-8 logo-float">
               <div className="inline-block p-6 rounded-3xl bg-gradient-to-br from-[#2a6f8a]/30 to-transparent backdrop-blur-sm border border-[#4eb8cc]/30 shadow-2xl shadow-[#2a6f8a]/20">
-                <Image
-                  src="/H_LOGO-01.png"
-                  alt="Codeat Infotech Logo"
-                  width={220}
-                  height={66}
-                  className="h-auto"
-                  priority
-                />
+                <img src="/H_LOGO-01.png" alt="Codeat Infotech" className="mx-auto h-16 w-auto" />
               </div>
             </div>
             
@@ -214,14 +206,7 @@ export default function LoginPage() {
                 {/* Mobile Logo */}
                 <div className="lg:hidden text-center mb-8">
                   <div className="inline-block p-4 rounded-2xl bg-[#070b10]/60 border border-[#16324f]/40 mb-4">
-                    <Image
-                      src="/H_LOGO-01.png"
-                      alt="Codeat Infotech Logo"
-                      width={160}
-                      height={48}
-                      className="h-auto"
-                      priority
-                    />
+                    <img src="/H_LOGO-01.png" alt="Codeat Infotech" className="mx-auto h-12 w-auto" />
                   </div>
                 </div>
 

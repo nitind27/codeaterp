@@ -5,6 +5,7 @@ import { logActivity } from '../../../../lib/logger.js';
 import { validateEmail, generateEmployeeId } from '../../../../lib/utils.js';
 import { sendWelcomeEmailWithCredentials } from '../../../../lib/email.js';
 import { ensureSchema } from '../../../../lib/ensureSchema.js';
+import { avatarPublicUrl } from '../../../../lib/avatarPath.js';
 
 // Get all employees
 export async function GET(req) {
@@ -79,7 +80,7 @@ export async function GET(req) {
         state: emp.state,
         country: emp.country,
         postalCode: emp.postal_code,
-        avatar: emp.avatar,
+        avatar: avatarPublicUrl(emp.avatar),
         department: emp.department,
         designation: emp.designation,
         joiningDate: emp.joining_date,

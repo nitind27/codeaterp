@@ -30,6 +30,7 @@ export default function PersonProfile({ employeeId, viewer }) {
   const [adminPassword, setAdminPassword] = useState('');
   const [ownPassword, setOwnPassword] = useState({ current: '', next: '', confirm: '' });
   const [docTitle, setDocTitle] = useState('');
+  const [preview, setPreview] = useState(false);
 
   const isAdmin = viewer?.role === 'admin';
   const isHr = viewer?.role === 'hr';
@@ -194,7 +195,8 @@ export default function PersonProfile({ employeeId, viewer }) {
       <section className="overflow-hidden rounded-3xl border border-[#7fd4e4]/20 bg-gradient-to-br from-[#0c1218] via-[#101820] to-[#0e1c2c]">
         <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:p-8">
           <div className="relative mx-auto h-40 w-40 flex-shrink-0 sm:mx-0">
-            <div className="h-40 w-40 overflow-hidden rounded-2xl border border-[#7fd4e4]/30 bg-[#070b10] shadow-lg shadow-[#4eb8cc]/10">
+            <button type="button" onClick={() => employee.avatar && setPreview(true)}
+              className="h-40 w-40 overflow-hidden rounded-2xl border border-[#7fd4e4]/30 bg-[#070b10] shadow-lg shadow-[#4eb8cc]/10">
               {employee.avatar ? (
                 <img src={employee.avatar} alt={employee.fullName} className="h-full w-full object-cover" />
               ) : (
@@ -202,7 +204,7 @@ export default function PersonProfile({ employeeId, viewer }) {
                   {(employee.fullName || 'U').charAt(0)}
                 </div>
               )}
-            </div>
+            </button>
             {(isSelf || isAdmin || isHr) && (
               <button type="button" onClick={() => fileRef.current?.click()} disabled={busy === 'photo'}
                 className="absolute -bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-gradient-to-r from-[#1c3d66] to-[#7fd4e4] px-3 py-1.5 text-xs font-semibold text-white shadow-lg disabled:opacity-60">
@@ -225,6 +227,13 @@ export default function PersonProfile({ employeeId, viewer }) {
           </div>
         </div>
       </section>
+
+      {preview && employee.avatar && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/90 p-4" onClick={() => setPreview(false)}>
+          <button type="button" className="absolute right-4 top-4 rounded-full bg-white/10 px-3 py-1.5 text-sm font-semibold text-white">Close</button>
+          <img src={employee.avatar} alt={employee.fullName} className="max-h-[92vh] max-w-[92vw] rounded-2xl object-contain shadow-2xl" onClick={(e) => e.stopPropagation()} />
+        </div>
+      )}
 
       <section className="rounded-3xl border border-[#7fd4e4]/15 bg-[#0c1218] p-6">
         <h2 className="text-lg font-bold text-[#f4f7f8]">Details</h2>

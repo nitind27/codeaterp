@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import pool from '../../../../../lib/db.js';
 import { verifyPassword, generateToken, generateRefreshToken } from '../../../../../lib/auth.js';
 import { logActivity } from '../../../../../lib/logger.js';
+import { avatarPublicUrl } from '../../../../../lib/avatarPath.js';
 import crypto from 'crypto';
 
 // Generate unique session token
@@ -69,7 +70,7 @@ export async function POST(req) {
           lastName: employee.last_name,
           department: employee.department,
           designation: employee.designation,
-          avatar: employee.avatar,
+          avatar: avatarPublicUrl(employee.avatar),
         } : null,
       },
     });

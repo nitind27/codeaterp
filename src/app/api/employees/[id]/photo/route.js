@@ -6,6 +6,7 @@ import pool from '../../../../../../lib/db.js';
 import { authenticate } from '../../../../../../lib/auth.js';
 import { ensureSchema } from '../../../../../../lib/ensureSchema.js';
 import { loadEmployeeAccess } from '../../../../../../lib/profileAccess.js';
+import { avatarDiskPaths, avatarPublicUrl } from '../../../../../../lib/avatarPath.js';
 
 const TYPES = {
   'image/jpeg': '.jpg',
@@ -40,20 +41,19 @@ export async function POST(req, { params }) {
       return NextResponse.json({ error: 'Photo must be under 2 MB' }, { status: 400 });
     }
 
-    const dir = path.join(process.cwd(), 'public', 'uploads', 'avatars');
+    const dir = path.join(process.cwd(), 'uploads', 'avatars');
     await fs.mkdir(dir, { recursive: true });
     const filename = `${id}-${Date.now()}-${randomBytes(4).toString('hex')}${ext}`;
+    const stored = `/uploads/avatars/${filename}`;
     await fs.writeFile(path.join(dir, filename), Buffer.from(await file.arrayBuffer()));
 
     const [current] = await pool.execute('SELECT avatar FROM employees WHERE id = ?', [id]);
-    const previous = current[0]?.avatar || '';
-    if (previous.startsWith('/uploads/avatars/')) {
-      await fs.unlink(path.join(process.cwd(), 'public', previous)).catch(() => {});
+    for (const oldPath of avatarDiskPaths(current[0]?.avatar)) {
+      await fs.unlink(oldPath).catch(() => {});
     }
 
-    const avatar = `/uploads/avatars/${filename}`;
-    await pool.execute('UPDATE employees SET avatar = ? WHERE id = ?', [avatar, id]);
-    return NextResponse.json({ success: true, avatar, message: 'Photo updated' });
+    await pool.execute('UPDATE employees SET avatar = ? WHERE id = ?', [stored, id]);
+    return NextResponse.json({ success: true, avatar: avatarPublicUrl(stored), message: 'Photo updated' });
   } catch (error) {
     console.error('Photo upload error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

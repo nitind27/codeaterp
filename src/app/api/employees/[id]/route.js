@@ -3,6 +3,7 @@ import pool from '../../../../../lib/db.js';
 import { authorize, authenticate } from '../../../../../lib/auth.js';
 import { logActivity } from '../../../../../lib/logger.js';
 import { ensureSchema } from '../../../../../lib/ensureSchema.js';
+import { avatarPublicUrl } from '../../../../../lib/avatarPath.js';
 
 // Get single employee
 export async function GET(req, { params }) {
@@ -71,7 +72,7 @@ export async function GET(req, { params }) {
         state: emp.state,
         country: emp.country,
         postalCode: emp.postal_code,
-        avatar: emp.avatar,
+        avatar: avatarPublicUrl(emp.avatar),
         department: emp.department,
         designation: emp.designation,
         joiningDate: emp.joining_date,

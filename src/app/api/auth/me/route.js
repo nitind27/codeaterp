@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { authenticate } from '../../../../../lib/auth.js';
 import pool from '../../../../../lib/db.js';
+import { avatarPublicUrl } from '../../../../../lib/avatarPath.js';
 
 export async function GET(req) {
   try {
@@ -48,7 +49,7 @@ export async function GET(req) {
           state: employee.state,
           country: employee.country,
           postalCode: employee.postal_code,
-          avatar: employee.avatar,
+          avatar: avatarPublicUrl(employee.avatar),
           department: employee.department,
           designation: employee.designation,
           joiningDate: employee.joining_date,

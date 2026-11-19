@@ -26,6 +26,8 @@ export default function SubmissionsPage() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [form, setForm] = useState({ title: '', link: '', notes: '', taskId: '' });
+  const [deleteRow, setDeleteRow] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const isReviewer = ['admin', 'hr', 'project_manager'].includes(user?.role);
 
@@ -92,6 +94,27 @@ export default function SubmissionsPage() {
     await load();
   };
 
+  const remove = async () => {
+    if (!deleteRow) return;
+    setDeleting(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`/api/submissions/${deleteRow.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!data.success) { toast.error(data.error || 'Could not delete'); return; }
+      toast.success('Submission deleted');
+      setDeleteRow(null);
+      await load();
+    } catch {
+      toast.error('Could not delete');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   if (loading || !user) return <LogoLoader />;
 
   return (
@@ -149,11 +172,12 @@ export default function SubmissionsPage() {
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">When</th>
                   {isReviewer && <th className="px-4 py-3">Review</th>}
+                  <th className="px-4 py-3 text-right">Delete</th>
                 </tr>
               </thead>
               <tbody>
                 {pager.rows.length === 0 ? (
-                  <tr><td colSpan={isReviewer ? 5 : 3} className="px-4 py-10 text-center text-slate-400">No submissions match these filters.</td></tr>
+                  <tr><td colSpan={isReviewer ? 6 : 4} className="px-4 py-10 text-center text-slate-400">No submissions match these filters.</td></tr>
                 ) : pager.rows.map((row) => (
                   <tr key={row.id} className="border-t border-white/5">
                     {isReviewer && (
@@ -182,6 +206,12 @@ export default function SubmissionsPage() {
                         </div>
                       </td>
                     )}
+                    <td className="px-4 py-3 text-right">
+                      <button type="button" onClick={() => setDeleteRow(row)}
+                        className="rounded-lg border border-rose-400/30 bg-rose-500/10 px-2.5 py-1 text-[11px] font-semibold text-rose-200 hover:bg-rose-500/20">
+                        Delete
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -190,6 +220,30 @@ export default function SubmissionsPage() {
           <Pager {...pager} />
         </div>
       </div>
+
+      {deleteRow && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-3xl border border-rose-400/30 bg-[#070b10] p-6 shadow-2xl">
+            <p className="text-[11px] uppercase tracking-[0.28em] text-rose-300">Delete submission</p>
+            <h3 className="mt-2 text-xl font-bold text-white">{deleteRow.title}</h3>
+            <p className="mt-2 text-sm text-[#9aa3ab]">
+              {deleteRow.employeeName ? `${deleteRow.employeeName} · ` : ''}
+              {deleteRow.taskTitle ? `Task: ${deleteRow.taskTitle}. ` : ''}
+              This removes the submitted work. The original task stays assigned.
+            </p>
+            <div className="mt-6 flex gap-3">
+              <button type="button" onClick={() => setDeleteRow(null)} disabled={deleting}
+                className="flex-1 rounded-xl border border-[#7fd4e4]/20 py-3 text-sm font-semibold text-[#d7dee6]">
+                Cancel
+              </button>
+              <button type="button" onClick={remove} disabled={deleting}
+                className="flex-1 rounded-xl bg-rose-500 py-3 text-sm font-semibold text-white disabled:opacity-60">
+                {deleting ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }
