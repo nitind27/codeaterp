@@ -20,7 +20,7 @@ export default function AchievementsPage() {
     title: '',
     description: '',
     awardedOn: '',
-    badgeColor: '#1A656D',
+    badgeColor: '#2a6f8a',
     points: 10
   });
 
@@ -110,7 +110,7 @@ export default function AchievementsPage() {
           title: '',
           description: '',
           awardedOn: '',
-          badgeColor: '#1A656D',
+          badgeColor: '#2a6f8a',
           points: 10
         });
         await loadAchievements(filterEmployeeId);
@@ -207,7 +207,7 @@ export default function AchievementsPage() {
                       <div className="flex items-center gap-3">
                         <div
                           className="h-12 w-12 rounded-2xl border border-white/20"
-                          style={{ backgroundColor: achievement.badgeColor || '#1A656D' }}
+                          style={{ backgroundColor: achievement.badgeColor || '#2a6f8a' }}
                         />
                         <div>
                           <p className="text-sm uppercase tracking-[0.35em] text-codeat-gray">Awarded to</p>

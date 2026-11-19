@@ -3,6 +3,7 @@ import { authenticate, authorize } from '../../../../lib/auth.js';
 import { calculateDaysBetween } from '../../../../lib/utils.js';
 import { logActivity } from '../../../../lib/logger.js';
 import { handleOptions, errorResponse, successResponse } from '../cors.js';
+import { ensureSchema } from '../../../../lib/ensureSchema.js';
 
 // Handle OPTIONS preflight request
 export async function OPTIONS() {
@@ -11,6 +12,7 @@ export async function OPTIONS() {
 
 export async function GET(req) {
   try {
+    await ensureSchema();
     const authResult = await authenticate(req);
     if (authResult.error) {
       return errorResponse(authResult.error, authResult.status);
@@ -64,6 +66,7 @@ export async function GET(req) {
 
 export async function POST(req) {
   try {
+    await ensureSchema();
     const authResult = await authorize('admin', 'hr')(req);
     if (authResult.error) {
       return errorResponse(authResult.error, authResult.status);

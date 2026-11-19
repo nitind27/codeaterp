@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import pool from '../../../../lib/db.js';
 import { authenticate } from '../../../../lib/auth.js';
 import { logActivity } from '../../../../lib/logger.js';
+import { ensureSchema } from '../../../../lib/ensureSchema.js';
 
 // ── Office location & radius ───────────────────────────────────────────────
 const OFFICE = {
@@ -26,9 +27,15 @@ const haversineKm = (lat1, lon1, lat2, lon2) => {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
-const checkLocation = (location, role) => {
+const checkLocation = async (location, role, userId) => {
   // Admin / HR / PM — no restriction
   if (!LOCATION_REQUIRED_ROLES.includes(role)) return { ok: true };
+
+  const [perm] = await pool.execute(
+    'SELECT remote_attendance FROM employees WHERE user_id = ?',
+    [userId]
+  );
+  if (perm[0]?.remote_attendance) return { ok: true, remote: true };
 
   if (!location?.latitude || !location?.longitude) {
     return { ok: false, error: 'Location is required to clock in/out. Please enable location access.' };
@@ -140,7 +147,8 @@ export async function POST(req) {
     const { location } = body;
 
     // ── Location check ──
-    const locResult = checkLocation(location, user.role);
+    await ensureSchema();
+    const locResult = await checkLocation(location, user.role, user.id);
     if (!locResult.ok) {
       return NextResponse.json({ error: locResult.error, locationRequired: true }, { status: 403 });
     }
@@ -211,7 +219,8 @@ export async function PUT(req) {
     const { location } = body;
 
     // ── Location check ──
-    const locResult = checkLocation(location, user.role);
+    await ensureSchema();
+    const locResult = await checkLocation(location, user.role, user.id);
     if (!locResult.ok) {
       return NextResponse.json({ error: locResult.error, locationRequired: true }, { status: 403 });
     }

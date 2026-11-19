@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Layout from '../../components/Layout';
 import LogoLoader from '../../components/LogoLoader';
+import { Pager, usePageSlice } from '../../components/TableKit';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
@@ -14,6 +15,10 @@ export default function InterviewsPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [filter, setFilter] = useState('all');
+  const [resultFilter, setResultFilter] = useState('');
+  const [search, setSearch] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   const [formData, setFormData] = useState({
     candidateName: '',
     candidateEmail: '',
@@ -147,9 +152,47 @@ export default function InterviewsPage() {
     }
   };
 
-  const filteredInterviews = filter === 'all' 
-    ? interviews 
-    : interviews.filter(i => i.status === filter);
+  const filteredInterviews = useMemo(() => interviews.filter((item) => {
+    const q = search.trim().toLowerCase();
+    const hit = !q || `${item.candidateName} ${item.candidateEmail || ''} ${item.candidatePhone || ''} ${item.position || ''} ${item.interviewerName || ''}`.toLowerCase().includes(q);
+    const day = item.interviewDate ? String(item.interviewDate).slice(0, 10) : '';
+    return hit
+      && (filter === 'all' || item.status === filter)
+      && (!resultFilter || item.result === resultFilter)
+      && (!fromDate || day >= fromDate)
+      && (!toDate || day <= toDate);
+  }), [interviews, search, filter, resultFilter, fromDate, toDate]);
+
+  const interviewPager = usePageSlice(
+    filteredInterviews,
+    8,
+    `${search}|${filter}|${resultFilter}|${fromDate}|${toDate}|${filteredInterviews.length}`
+  );
+
+  const whatsappLink = (interview) => {
+    const digits = String(interview.candidatePhone || '').replace(/\D/g, '');
+    const phone = digits.length === 10 ? `91${digits}` : digits;
+    if (phone.length < 11) return null;
+    const when = formatDateTime(interview.interviewDate);
+    const text = [
+      '*Codeat Infotech — Interview*',
+      '',
+      `Hello ${interview.candidateName},`,
+      '',
+      'Your interview details:',
+      `• Position: ${interview.position || 'To be confirmed'}`,
+      `• Date & time: ${when}`,
+      `• Interviewer: ${interview.interviewerName || 'HR team'}`,
+      `• Status: ${interview.status || 'scheduled'}`,
+      interview.notes ? `• Note: ${interview.notes}` : '',
+      '',
+      'Please be available 10 minutes early and keep your resume ready.',
+      'Reply on this chat if you need to reschedule.',
+      '',
+      '— HR Team, Codeat Infotech',
+    ].filter(Boolean).join('\n');
+    return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+  };
 
   if (loading || !user) {
     return <LogoLoader />;
@@ -224,6 +267,19 @@ export default function InterviewsPage() {
           ))}
         </div>
 
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <input value={search} onChange={(e) => setSearch(e.target.value)} className="input-field" placeholder="Search name, phone, position" />
+          <select value={resultFilter} onChange={(e) => setResultFilter(e.target.value)} className="input-field">
+            <option value="">All results</option>
+            <option value="pending">Pending</option>
+            <option value="selected">Selected</option>
+            <option value="rejected">Rejected</option>
+            <option value="on_hold">On hold</option>
+          </select>
+          <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="input-field" />
+          <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="input-field" />
+        </div>
+
         {/* Interviews List */}
         {filteredInterviews.length === 0 ? (
           <div className="bg-codeat-mid rounded-2xl border border-codeat-muted/30 p-12 text-center">
@@ -255,10 +311,11 @@ export default function InterviewsPage() {
                     <th className="px-4 sm:px-6 py-4 text-left text-codeat-silver font-semibold text-xs sm:text-sm uppercase tracking-wider hidden lg:table-cell">Interviewer</th>
                     <th className="px-4 sm:px-6 py-4 text-left text-codeat-silver font-semibold text-xs sm:text-sm uppercase tracking-wider">Status</th>
                     <th className="px-4 sm:px-6 py-4 text-left text-codeat-silver font-semibold text-xs sm:text-sm uppercase tracking-wider hidden lg:table-cell">Result</th>
+                    <th className="px-4 sm:px-6 py-4 text-left text-codeat-silver font-semibold text-xs sm:text-sm uppercase tracking-wider">WhatsApp</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredInterviews.map((interview) => (
+                  {interviewPager.rows.map((interview) => (
                     <tr key={interview.id} className="hover:bg-codeat-dark/40 transition-colors duration-200">
                       <td className="px-4 sm:px-6 py-4">
                         <div>
@@ -287,11 +344,20 @@ export default function InterviewsPage() {
                           {interview.result ? interview.result.replace('_', ' ').charAt(0).toUpperCase() + interview.result.replace('_', ' ').slice(1) : 'Pending'}
                         </span>
                       </td>
+                      <td className="px-4 sm:px-6 py-4">
+                        {whatsappLink(interview) ? (
+                          <a href={whatsappLink(interview)} target="_blank" rel="noreferrer"
+                            className="inline-flex items-center gap-1 rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-400">
+                            WhatsApp
+                          </a>
+                        ) : <span className="text-xs text-codeat-gray">No phone</span>}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+            <Pager {...interviewPager} />
           </div>
         )}
 

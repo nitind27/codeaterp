@@ -2,10 +2,12 @@ import { NextResponse } from 'next/server';
 import pool from '../../../../../lib/db.js';
 import { authorize, authenticate } from '../../../../../lib/auth.js';
 import { logActivity } from '../../../../../lib/logger.js';
+import { ensureSchema } from '../../../../../lib/ensureSchema.js';
 
 // Get single employee
 export async function GET(req, { params }) {
   try {
+    await ensureSchema();
     const authResult = await authenticate(req);
     if (authResult.error) {
       return NextResponse.json(
@@ -83,6 +85,7 @@ export async function GET(req, { params }) {
         emergencyContactPhone: emp.emergency_contact_phone,
         role: emp.role,
         isActive: emp.is_active,
+        remoteAttendance: !!emp.remote_attendance,
         createdAt: emp.created_at,
         updatedAt: emp.updated_at
       }
@@ -129,7 +132,11 @@ export async function PUT(req, { params }) {
       delete data.designation;
       delete data.employment_type;
       delete data.manager_id;
+      delete data.remote_attendance;
+      delete data.joining_date;
     }
+
+    await ensureSchema();
 
     const updateFields = [];
     const updateValues = [];
@@ -138,6 +145,7 @@ export async function PUT(req, { params }) {
       'first_name', 'last_name', 'phone', 'date_of_birth', 'gender',
       'address', 'city', 'state', 'country', 'postal_code', 'avatar',
       'department', 'designation', 'salary', 'employment_type', 'manager_id',
+      'joining_date', 'remote_attendance',
       'emergency_contact_name', 'emergency_contact_phone'
     ];
 

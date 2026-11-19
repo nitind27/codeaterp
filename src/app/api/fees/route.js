@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import pool from '../../../../lib/db.js';
 import { authorize } from '../../../../lib/auth.js';
+import { ensureSchema } from '../../../../lib/ensureSchema.js';
 
 // Get all intern fees (admin) or own fees (intern)
 export async function GET(req) {
   try {
+    await ensureSchema();
     const authResult = await authorize('admin', 'hr', 'intern')(req);
     if (authResult.error) {
       return NextResponse.json(
@@ -25,6 +27,8 @@ export async function GET(req) {
         \`if\`.paid_amount,
         \`if\`.remaining_amount,
         \`if\`.notes,
+        \`if\`.period_start,
+        \`if\`.period_end,
         \`if\`.created_at,
         \`if\`.updated_at,
         e.first_name,
@@ -89,6 +93,8 @@ export async function GET(req) {
           paidAmount: parseFloat(fee.paid_amount),
           remainingAmount: parseFloat(fee.remaining_amount),
           notes: fee.notes,
+          periodStart: fee.period_start,
+          periodEnd: fee.period_end,
           payments: payments.map(p => ({
             id: p.id,
             amount: parseFloat(p.amount),
@@ -105,9 +111,23 @@ export async function GET(req) {
       })
     );
 
+    const asDay = (value) => {
+      if (!value) return null;
+      const date = value instanceof Date ? value : new Date(value);
+      if (Number.isNaN(date.getTime())) return String(value).slice(0, 10);
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    };
+    const today = asDay(new Date());
+    const visibleFees = user.role === 'intern'
+      ? feesWithPayments.filter((fee) => !fee.periodStart || asDay(fee.periodStart) <= today)
+      : feesWithPayments;
+
     return NextResponse.json({
       success: true,
-      fees: feesWithPayments
+      fees: visibleFees
     });
   } catch (error) {
     console.error('Get fees error:', error);
@@ -121,6 +141,7 @@ export async function GET(req) {
 // Create or update intern fees (admin only)
 export async function POST(req) {
   try {
+    await ensureSchema();
     const authResult = await authorize('admin', 'hr')(req);
     if (authResult.error) {
       return NextResponse.json(
@@ -130,7 +151,7 @@ export async function POST(req) {
     }
 
     const data = await req.json();
-    const { employeeId, totalFees, notes } = data;
+    const { employeeId, totalFees, notes, periodStart, periodEnd } = data;
 
     if (!employeeId || totalFees === undefined || totalFees === null) {
       return NextResponse.json(
@@ -188,16 +209,18 @@ export async function POST(req) {
          SET total_fees = ?, 
              remaining_amount = ? - paid_amount,
              notes = ?,
+             period_start = ?,
+             period_end = ?,
              updated_at = NOW()
          WHERE id = ?`,
-        [totalFees, totalFees, notes || null, feesId]
+        [totalFees, totalFees, notes || null, periodStart || null, periodEnd || null, feesId]
       );
     } else {
       // Create new fees record
       const [result] = await pool.execute(
-        `INSERT INTO intern_fees (employee_id, total_fees, paid_amount, remaining_amount, notes, created_by)
-         VALUES (?, ?, 0, ?, ?, ?)`,
-        [employeeId, totalFees, totalFees, notes || null, authResult.user.id]
+        `INSERT INTO intern_fees (employee_id, total_fees, paid_amount, remaining_amount, notes, period_start, period_end, created_by)
+         VALUES (?, ?, 0, ?, ?, ?, ?, ?)`,
+        [employeeId, totalFees, totalFees, notes || null, periodStart || null, periodEnd || null, authResult.user.id]
       );
       feesId = result.insertId;
     }

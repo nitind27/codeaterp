@@ -29,11 +29,11 @@ export default function ReportsPage() {
   }
 
   const reports = [
-    { name: 'Attendance Report', description: 'View attendance records and statistics', icon: '⏰', color: 'from-blue-500 to-blue-600' },
-    { name: 'Leave Report', description: 'Generate leave applications and balance reports', icon: '📅', color: 'from-green-500 to-green-600' },
-    { name: 'Employee Report', description: 'Export employee list and details', icon: '👥', color: 'from-purple-500 to-purple-600' },
-    { name: 'Project Report', description: 'View project progress and statistics', icon: '📁', color: 'from-orange-500 to-orange-600' },
-    { name: 'Task Report', description: 'Track task completion and performance', icon: '✅', color: 'from-teal-500 to-teal-600' },
+    { name: 'Attendance Report', description: 'View attendance records and statistics', icon: '⏰', color: 'from-[#1c3d66] to-[#4eb8cc]' },
+    { name: 'Leave Report', description: 'Generate leave applications and balance reports', icon: '📅', color: 'from-[#16324f] to-[#7fd4e4]' },
+    { name: 'Employee Report', description: 'Export employee list and details', icon: '👥', color: 'from-[#1c3d66] to-[#7fd4e4]' },
+    { name: 'Project Report', description: 'View project progress and statistics', icon: '📁', color: 'from-[#0e1c2c] to-[#4eb8cc]' },
+    { name: 'Task Report', description: 'Track task completion and performance', icon: '✅', color: 'from-[#1c3d66] to-[#4eb8cc]' },
     { name: 'Complaint Report', description: 'View complaints and resolution status', icon: '📝', color: 'from-red-500 to-red-600' }
   ];
 

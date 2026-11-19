@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Layout from '../../components/Layout';
 import LogoLoader from '../../components/LogoLoader';
+import { Pager, usePageSlice } from '../../components/TableKit';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
@@ -30,6 +31,12 @@ export default function LeavePage() {
   });
   const [selectedLeaveType, setSelectedLeaveType] = useState(null);
   const [leaveTypes, setLeaveTypes] = useState([]);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+  const [durationFilter, setDurationFilter] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -203,6 +210,49 @@ export default function LeavePage() {
       toast.error('Error applying leave');
     }
   };
+
+  const isAdmin = user?.role === 'admin' || user?.role === 'hr';
+
+  const decideLeave = async (leave, status) => {
+    const rejectionReason = status === 'rejected' ? (window.prompt('Rejection reason') || '') : '';
+    if (status === 'rejected' && !rejectionReason.trim()) {
+      toast.error('Rejection reason is required');
+      return;
+    }
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`/api/leave/${leave.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status, rejectionReason })
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(status === 'approved' ? 'Leave approved' : 'Leave rejected');
+        await loadData();
+      } else toast.error(data.error || 'Could not update leave');
+    } catch {
+      toast.error('Could not update leave');
+    }
+  };
+
+  const filteredLeaves = useMemo(() => leaves.filter((leave) => {
+    const q = search.trim().toLowerCase();
+    const hit = !q || `${leave.employeeName} ${leave.employeeCode} ${leave.leaveTypeName} ${leave.reason || ''}`.toLowerCase().includes(q);
+    const start = leave.startDate ? String(leave.startDate).slice(0, 10) : '';
+    return hit
+      && (!statusFilter || leave.status === statusFilter)
+      && (!typeFilter || String(leave.leaveTypeId) === typeFilter)
+      && (!durationFilter || leave.durationType === durationFilter)
+      && (!fromDate || start >= fromDate)
+      && (!toDate || start <= toDate);
+  }), [leaves, search, statusFilter, typeFilter, durationFilter, fromDate, toDate]);
+
+  const leavePager = usePageSlice(
+    filteredLeaves,
+    8,
+    `${search}|${statusFilter}|${typeFilter}|${durationFilter}|${fromDate}|${toDate}|${filteredLeaves.length}`
+  );
 
   if (loading || !user) {
     return <LogoLoader />;
@@ -605,32 +655,62 @@ export default function LeavePage() {
 
         {/* Leave History */}
         <div className="bg-codeat-mid rounded-2xl p-6 lg:p-8 border border-codeat-muted/30 shadow-xl">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-codeat-silver">Leave History</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-codeat-silver">{isAdmin ? 'All leave requests' : 'Leave History'}</h2>
             <div className="h-1 flex-1 mx-4 bg-codeat-muted/30 rounded-full"></div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-5">
+            <input value={search} onChange={(e) => setSearch(e.target.value)} className="input-field" placeholder="Search employee, type, reason" />
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="input-field">
+              <option value="">All status</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="input-field">
+              <option value="">All leave types</option>
+              {leaveTypes.map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}
+            </select>
+            <select value={durationFilter} onChange={(e) => setDurationFilter(e.target.value)} className="input-field">
+              <option value="">All durations</option>
+              <option value="full_day">Full day</option>
+              <option value="half_day">Half day</option>
+              <option value="hourly">Hourly</option>
+            </select>
+            <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="input-field" />
+            <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="input-field" />
           </div>
           <div className="table-container">
             <table className="w-full">
               <thead>
                 <tr>
+                  {isAdmin && <th className="px-4 sm:px-6 py-4 text-left text-codeat-silver font-semibold text-xs sm:text-sm uppercase tracking-wider">Employee</th>}
                   <th className="px-4 sm:px-6 py-4 text-left text-codeat-silver font-semibold text-xs sm:text-sm uppercase tracking-wider">Leave Type</th>
                   <th className="px-4 sm:px-6 py-4 text-left text-codeat-silver font-semibold text-xs sm:text-sm uppercase tracking-wider">Start Date</th>
                   <th className="px-4 sm:px-6 py-4 text-left text-codeat-silver font-semibold text-xs sm:text-sm uppercase tracking-wider">End Date</th>
                   <th className="px-4 sm:px-6 py-4 text-left text-codeat-silver font-semibold text-xs sm:text-sm uppercase tracking-wider">Duration</th>
                   <th className="px-4 sm:px-6 py-4 text-left text-codeat-silver font-semibold text-xs sm:text-sm uppercase tracking-wider">Status</th>
+                  {isAdmin && <th className="px-4 sm:px-6 py-4 text-left text-codeat-silver font-semibold text-xs sm:text-sm uppercase tracking-wider">Action</th>}
                 </tr>
               </thead>
               <tbody>
-                {leaves.length === 0 ? (
+                {leavePager.rows.length === 0 ? (
                   <tr>
-                    <td colSpan="5" className="px-6 py-12 text-center">
+                    <td colSpan={isAdmin ? 7 : 5} className="px-6 py-12 text-center">
                       <div className="text-codeat-gray text-lg mb-2">No leave applications found</div>
                       <p className="text-codeat-gray text-sm">Your leave history will appear here</p>
                     </td>
                   </tr>
                 ) : (
-                  leaves.map((leave) => (
+                  leavePager.rows.map((leave) => (
                     <tr key={leave.id} className="hover:bg-codeat-dark/40 transition-colors duration-200">
+                      {isAdmin && (
+                        <td className="px-4 sm:px-6 py-4">
+                          <div className="text-codeat-silver font-semibold">{leave.employeeName}</div>
+                          <div className="text-codeat-gray text-xs">{leave.employeeCode}</div>
+                        </td>
+                      )}
                       <td className="px-4 sm:px-6 py-4">
                         <div>
                           <span className="text-codeat-silver font-semibold">{leave.leaveTypeName}</span>
@@ -690,12 +770,23 @@ export default function LeavePage() {
                           {leave.status}
                         </span>
                       </td>
+                      {isAdmin && (
+                        <td className="px-4 sm:px-6 py-4">
+                          {leave.status === 'pending' ? (
+                            <div className="flex gap-2">
+                              <button onClick={() => decideLeave(leave, 'approved')} className="px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 text-xs font-semibold">Approve</button>
+                              <button onClick={() => decideLeave(leave, 'rejected')} className="px-2.5 py-1 rounded-lg bg-rose-500/15 text-rose-300 text-xs font-semibold">Reject</button>
+                            </div>
+                          ) : <span className="text-codeat-gray text-xs">—</span>}
+                        </td>
+                      )}
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
           </div>
+          <Pager {...leavePager} />
         </div>
       </div>
     </Layout>

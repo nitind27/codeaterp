@@ -4,10 +4,12 @@ import { authorize, hashPassword } from '../../../../lib/auth.js';
 import { logActivity } from '../../../../lib/logger.js';
 import { validateEmail, generateEmployeeId } from '../../../../lib/utils.js';
 import { sendWelcomeEmailWithCredentials } from '../../../../lib/email.js';
+import { ensureSchema } from '../../../../lib/ensureSchema.js';
 
 // Get all employees
 export async function GET(req) {
   try {
+    await ensureSchema();
     const authResult = await authorize('admin', 'hr', 'project_manager')(req);
     if (authResult.error) {
       return NextResponse.json(
@@ -81,6 +83,7 @@ export async function GET(req) {
           : null,
         role: emp.role,
         isActive: emp.is_active,
+        remoteAttendance: !!emp.remote_attendance,
         createdAt: emp.created_at,
         updatedAt: emp.updated_at
       }))

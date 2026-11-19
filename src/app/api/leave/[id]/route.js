@@ -15,7 +15,7 @@ export async function PUT(req, { params }) {
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
     const { status, rejectionReason } = await req.json();
 
     if (!status || !['approved', 'rejected'].includes(status)) {

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import LogoLoader from '../../components/LogoLoader';
+import { Pager, usePageSlice } from '../../components/TableKit';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
@@ -20,6 +21,10 @@ export default function ProjectsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState('');
+  const [managerFilter, setManagerFilter] = useState('');
+  const [memberForm, setMemberForm] = useState({ employeeId: '', role: 'developer' });
+  const [addingMember, setAddingMember] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -259,8 +264,52 @@ export default function ProjectsPage() {
                           project.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           project.managerName?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = !statusFilter || project.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesPriority = !priorityFilter || project.priority === priorityFilter;
+    const matchesManager = !managerFilter || String(project.projectManagerId) === String(managerFilter);
+    return matchesSearch && matchesStatus && matchesPriority && matchesManager;
   });
+
+  const projectPager = usePageSlice(
+    filteredProjects,
+    6,
+    `${searchTerm}|${statusFilter}|${priorityFilter}|${managerFilter}|${filteredProjects.length}`
+  );
+
+  const addMember = async (event) => {
+    event.preventDefault();
+    if (!selectedProject || !memberForm.employeeId) return;
+    setAddingMember(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`/api/projects/${selectedProject.id}/members`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(memberForm),
+      });
+      const data = await res.json();
+      if (!data.success) { toast.error(data.error || 'Could not add member'); return; }
+      toast.success(data.message);
+      setMemberForm({ employeeId: '', role: 'developer' });
+      await openViewModal(selectedProject);
+    } catch {
+      toast.error('Could not add member');
+    } finally {
+      setAddingMember(false);
+    }
+  };
+
+  const removeMember = async (employeeId) => {
+    if (!selectedProject) return;
+    const token = localStorage.getItem('token');
+    const res = await fetch(`/api/projects/${selectedProject.id}/members?employee_id=${employeeId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    if (!data.success) { toast.error(data.error || 'Could not remove member'); return; }
+    toast.success('Member removed');
+    await openViewModal(selectedProject);
+  };
 
   const formatDate = (dateString) => {
     if (!dateString) return 'Not set';
@@ -326,7 +375,7 @@ export default function ProjectsPage() {
               />
             </div>
             {/* Status Filter */}
-            <div className="w-full md:w-48">
+            <div className="grid flex-1 grid-cols-1 sm:grid-cols-3 gap-3">
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
@@ -339,17 +388,36 @@ export default function ProjectsPage() {
                 <option value="completed">Completed</option>
                 <option value="cancelled">Cancelled</option>
               </select>
+              <select
+                value={priorityFilter}
+                onChange={(e) => setPriorityFilter(e.target.value)}
+                className="w-full px-4 py-3 bg-codeat-dark border border-codeat-muted/30 rounded-xl text-codeat-silver"
+              >
+                <option value="">All priority</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+              </select>
+              <select
+                value={managerFilter}
+                onChange={(e) => setManagerFilter(e.target.value)}
+                className="w-full px-4 py-3 bg-codeat-dark border border-codeat-muted/30 rounded-xl text-codeat-silver"
+              >
+                <option value="">All managers</option>
+                {employees.map((emp) => <option key={emp.id} value={emp.id}>{emp.fullName}</option>)}
+              </select>
             </div>
           </div>
           {/* Results count */}
           <div className="mt-4 text-codeat-gray text-sm">
-            Showing {filteredProjects.length} of {projects.length} projects
+            Showing {projectPager.from}–{projectPager.to} of {filteredProjects.length} projects
           </div>
         </div>
 
         {/* Projects Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
-          {filteredProjects.map((project) => (
+          {projectPager.rows.map((project) => (
             <div key={project.id} className="bg-codeat-mid rounded-2xl border border-codeat-muted/30 p-6 lg:p-8 hover:border-codeat-accent/50 transition-all duration-300 shadow-lg hover:shadow-xl card-hover group">
               {/* Header */}
               <div className="flex justify-between items-start mb-4">
@@ -469,6 +537,8 @@ export default function ProjectsPage() {
         </div>
 
         {/* Empty State */}
+        <Pager {...projectPager} />
+
         {filteredProjects.length === 0 && (
           <div className="bg-codeat-mid rounded-2xl border border-codeat-muted/30 p-12 lg:p-16 text-center shadow-xl">
             <div className="text-6xl mb-4 opacity-30">📁</div>
@@ -759,9 +829,26 @@ export default function ProjectsPage() {
               </div>
 
               {/* Team Members */}
-              {selectedProject.members && selectedProject.members.length > 0 && (
-                <div className="bg-codeat-dark rounded-xl p-4 border border-codeat-muted/30">
-                  <h3 className="text-codeat-accent font-semibold mb-4">Team Members ({selectedProject.members.length})</h3>
+              <div className="bg-codeat-dark rounded-xl p-4 border border-codeat-muted/30">
+                <h3 className="text-codeat-accent font-semibold mb-4">Project group ({selectedProject.members?.length || 0})</h3>
+                {canManageProjects && (
+                  <form onSubmit={addMember} className="grid grid-cols-1 sm:grid-cols-[1fr_140px_auto] gap-2 mb-4">
+                    <select value={memberForm.employeeId} onChange={(e) => setMemberForm({ ...memberForm, employeeId: e.target.value })} className="input-field" required>
+                      <option value="">Add a person</option>
+                      {employees.map((emp) => <option key={emp.id} value={emp.id}>{emp.fullName} ({emp.employeeId})</option>)}
+                    </select>
+                    <select value={memberForm.role} onChange={(e) => setMemberForm({ ...memberForm, role: e.target.value })} className="input-field">
+                      <option value="developer">Developer</option>
+                      <option value="lead">Lead</option>
+                      <option value="designer">Designer</option>
+                      <option value="tester">Tester</option>
+                      <option value="other">Other</option>
+                    </select>
+                    <button disabled={addingMember} className="rounded-xl bg-codeat-teal px-4 py-2 text-sm font-semibold text-white">{addingMember ? 'Adding…' : 'Add'}</button>
+                  </form>
+                )}
+                {selectedProject.members && selectedProject.members.length > 0 && (
+                <div>
                   <div className="space-y-3">
                     {selectedProject.members.map((member) => (
                       <div key={member.id} className="flex items-center justify-between bg-codeat-mid rounded-lg p-3">
@@ -774,14 +861,20 @@ export default function ProjectsPage() {
                             <p className="text-codeat-gray text-sm">{member.designation || 'Team Member'}</p>
                           </div>
                         </div>
-                        <span className="px-3 py-1 bg-codeat-teal/20 text-codeat-accent text-xs rounded-full font-medium">
-                          {member.role || 'Member'}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="px-3 py-1 bg-codeat-teal/20 text-codeat-accent text-xs rounded-full font-medium">
+                            {member.role || 'Member'}
+                          </span>
+                          {canManageProjects && (
+                            <button type="button" onClick={() => removeMember(member.employeeId)} className="text-xs text-rose-300">Remove</button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
+              </div>
 
               {/* Action Buttons */}
               <div className="flex gap-4 pt-4 border-t border-codeat-muted/30">

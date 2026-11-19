@@ -37,7 +37,8 @@ export async function GET(req, { params }) {
 
     // Get project members
     const [members] = await pool.execute(
-      `SELECT pm.*, e.first_name, e.last_name, e.employee_id, e.designation
+      `SELECT pm.id, pm.employee_id AS member_employee_id, pm.role, pm.assigned_at,
+              e.first_name, e.last_name, e.employee_id AS employee_code, e.designation
        FROM project_members pm
        JOIN employees e ON pm.employee_id = e.id
        WHERE pm.project_id = ?`,
@@ -62,9 +63,9 @@ export async function GET(req, { params }) {
         budget: proj.budget,
         members: members.map(m => ({
           id: m.id,
-          employeeId: m.employee_id,
+          employeeId: m.member_employee_id,
           employeeName: `${m.first_name} ${m.last_name}`,
-          employeeCode: m.employee_id,
+          employeeCode: m.employee_code,
           designation: m.designation,
           role: m.role,
           assignedAt: m.assigned_at

@@ -5,13 +5,22 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import toast from 'react-hot-toast';
 
+/* ─── Shared chrome — logo black, navy, cyan, silver ─────────────────────── */
+const CHROME = {
+  sb: 'from-[#0c1218] to-[#05080c]',
+  act: 'bg-[#7fd4e4]/12 border-[#7fd4e4]/35 text-[#f4f7f8]',
+  dot: 'bg-[#7fd4e4]',
+  badge: 'bg-[#1c3d66]/60 text-[#7fd4e4] border-[#7fd4e4]/35',
+  av: 'from-[#1c3d66] to-[#7fd4e4]',
+};
+
 /* ─── Role config ─────────────────────────────────────────────────────────── */
 const RC = {
-  admin:           { label:'Admin',           panel:'Admin Panel',      tagline:'Full system control — manage every module.',        sb:'from-[#071c1e] to-[#040f10]', act:'bg-[#1A656D]/20 border-[#1A656D]/50', dot:'bg-[#31747c]', badge:'bg-[#1A656D]/20 text-[#7dd3d8] border-[#1A656D]/40', av:'from-[#1A656D] to-[#31747c]', fl:[{l:'Reports',h:'/reports'},{l:'Settings',h:'/settings'},{l:'Employees',h:'/employees'}] },
-  hr:              { label:'HR',              panel:'HR Panel',         tagline:'Manage people, attendance, leaves & more.',         sb:'from-[#130a1e] to-[#080410]', act:'bg-purple-600/20 border-purple-500/50', dot:'bg-purple-400', badge:'bg-purple-500/20 text-purple-300 border-purple-500/40', av:'from-purple-600 to-violet-500', fl:[{l:'Employees',h:'/employees'},{l:'Leave',h:'/leave'},{l:'Reports',h:'/reports'}] },
-  project_manager: { label:'Project Manager', panel:'Project Panel',    tagline:'Track projects, tasks and your team.',              sb:'from-[#071018] to-[#040810]', act:'bg-blue-600/20 border-blue-500/50',   dot:'bg-blue-400',   badge:'bg-blue-500/20 text-blue-300 border-blue-500/40',     av:'from-blue-600 to-sky-500',     fl:[{l:'Projects',h:'/projects'},{l:'Tasks',h:'/tasks'},{l:'Team',h:'/team'}] },
-  employee:        { label:'Employee',        panel:'Employee Portal',  tagline:'Your workspace — attendance, leave & tasks.',       sb:'from-[#071a0e] to-[#040f08]', act:'bg-emerald-600/20 border-emerald-500/50', dot:'bg-emerald-400', badge:'bg-emerald-500/20 text-emerald-300 border-emerald-500/40', av:'from-emerald-600 to-green-500', fl:[{l:'Attendance',h:'/attendance'},{l:'Leave',h:'/leave'},{l:'Profile',h:'/profile'}] },
-  intern:          { label:'Intern',          panel:'Intern Portal',    tagline:'Track your attendance, fees & tasks.',              sb:'from-[#1a1007] to-[#100904]', act:'bg-amber-600/20 border-amber-500/50',   dot:'bg-amber-400',   badge:'bg-amber-500/20 text-amber-300 border-amber-500/40',     av:'from-amber-500 to-orange-400', fl:[{l:'Attendance',h:'/attendance'},{l:'Fees',h:'/fees'},{l:'Profile',h:'/profile'}] },
+  admin:           { ...CHROME, label:'Admin',           panel:'Admin Panel',     tagline:'Full system control — manage every module.',  fl:[{l:'Reports',h:'/reports'},{l:'Settings',h:'/settings'},{l:'Employees',h:'/employees'}] },
+  hr:              { ...CHROME, label:'HR',              panel:'HR Panel',        tagline:'Manage people, attendance, leaves & more.',   fl:[{l:'Employees',h:'/employees'},{l:'Leave',h:'/leave'},{l:'Reports',h:'/reports'}] },
+  project_manager: { ...CHROME, label:'Project Manager', panel:'Project Panel',   tagline:'Track projects, tasks and your team.',        fl:[{l:'Projects',h:'/projects'},{l:'Tasks',h:'/tasks'},{l:'Team',h:'/team'}] },
+  employee:        { ...CHROME, label:'Employee',        panel:'Employee Portal', tagline:'Your workspace — attendance, leave & tasks.', fl:[{l:'Attendance',h:'/attendance'},{l:'Tasks',h:'/tasks'},{l:'Requests',h:'/requests'}] },
+  intern:          { ...CHROME, label:'Intern',          panel:'Intern Portal',   tagline:'Track your attendance, fees & tasks.',        fl:[{l:'Attendance',h:'/attendance'},{l:'Fees',h:'/fees'},{l:'Submit',h:'/submissions'}] },
 };
 
 /* ─── Nav icons ───────────────────────────────────────────────────────────── */
@@ -32,6 +41,8 @@ const IC = {
   '/team':         <svg className="w-[17px] h-[17px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>,
   '/profile':      <svg className="w-[17px] h-[17px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>,
   '/interviews':   <svg className="w-[17px] h-[17px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>,
+  '/submissions':  <svg className="w-[17px] h-[17px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M9 12h6m-6 4h6M7 4h7l5 5v11a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z"/></svg>,
+  '/requests':     <svg className="w-[17px] h-[17px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M8 10h8M8 14h5M6 4h12a2 2 0 012 2v12l-4-2H6a2 2 0 01-2-2V6a2 2 0 012-2z"/></svg>,
 };
 
 /* ─── Menus ───────────────────────────────────────────────────────────────── */
@@ -39,31 +50,31 @@ const MENUS = {
   admin: [
     { g:'Overview',    items:[{n:'Dashboard',p:'/dashboard'}] },
     { g:'People',      items:[{n:'Employees',p:'/employees'},{n:'Attendance',p:'/attendance'},{n:'Leave Management',p:'/leave'}] },
-    { g:'Operations',  items:[{n:'Projects',p:'/projects'},{n:'Fees Management',p:'/fees'},{n:'Interviews',p:'/interviews'}] },
+    { g:'Operations',  items:[{n:'Projects',p:'/projects'},{n:'Fees Management',p:'/fees'},{n:'Interviews',p:'/interviews'},{n:'Submissions',p:'/submissions'},{n:'Requests',p:'/requests'}] },
     { g:'Culture',     items:[{n:'Holidays',p:'/holidays'},{n:'Achievements',p:'/achievements'},{n:'Complaints',p:'/complaints'},{n:'Discussions',p:'/discussions'}] },
     { g:'System',      items:[{n:'Reports',p:'/reports'},{n:'Settings',p:'/settings'}] },
   ],
   hr: [
     { g:'Overview',    items:[{n:'Dashboard',p:'/dashboard'}] },
     { g:'People',      items:[{n:'Employees',p:'/employees'},{n:'Attendance',p:'/attendance'},{n:'Leave Management',p:'/leave'},{n:'Interviews',p:'/interviews'}] },
-    { g:'Operations',  items:[{n:'Fees Management',p:'/fees'}] },
+    { g:'Operations',  items:[{n:'Fees Management',p:'/fees'},{n:'Submissions',p:'/submissions'},{n:'Requests',p:'/requests'}] },
     { g:'Culture',     items:[{n:'Holidays',p:'/holidays'},{n:'Achievements',p:'/achievements'},{n:'Complaints',p:'/complaints'},{n:'Discussions',p:'/discussions'}] },
     { g:'Reports',     items:[{n:'Reports',p:'/reports'}] },
   ],
   project_manager: [
     { g:'Overview',    items:[{n:'Dashboard',p:'/dashboard'}] },
-    { g:'Work',        items:[{n:'Projects',p:'/projects'},{n:'Tasks',p:'/tasks'},{n:'Team',p:'/team'}] },
+    { g:'Work',        items:[{n:'Projects',p:'/projects'},{n:'Tasks',p:'/tasks'},{n:'Submissions',p:'/submissions'},{n:'Team',p:'/team'}] },
     { g:'Connect',     items:[{n:'Discussions',p:'/discussions'}] },
   ],
   employee: [
     { g:'Overview',    items:[{n:'Dashboard',p:'/dashboard'}] },
-    { g:'My Work',     items:[{n:'Attendance',p:'/attendance'},{n:'Leave',p:'/leave'},{n:'Tasks',p:'/tasks'}] },
+    { g:'My Work',     items:[{n:'Attendance',p:'/attendance'},{n:'Leave',p:'/leave'},{n:'Tasks',p:'/tasks'},{n:'Submit Work',p:'/submissions'},{n:'Requests',p:'/requests'}] },
     { g:'Company',     items:[{n:'Holidays',p:'/holidays'},{n:'Achievements',p:'/achievements'},{n:'Complaints',p:'/complaints'},{n:'Discussions',p:'/discussions'}] },
     { g:'Account',     items:[{n:'Profile',p:'/profile'}] },
   ],
   intern: [
     { g:'Overview',    items:[{n:'Dashboard',p:'/dashboard'}] },
-    { g:'My Work',     items:[{n:'Attendance',p:'/attendance'},{n:'Leave',p:'/leave'},{n:'Tasks',p:'/tasks'}] },
+    { g:'My Work',     items:[{n:'Attendance',p:'/attendance'},{n:'Leave',p:'/leave'},{n:'Tasks',p:'/tasks'},{n:'Submit Work',p:'/submissions'},{n:'Requests',p:'/requests'}] },
     { g:'Finance',     items:[{n:'Fees & Receipts',p:'/fees'}] },
     { g:'Company',     items:[{n:'Holidays',p:'/holidays'},{n:'Achievements',p:'/achievements'},{n:'Discussions',p:'/discussions'}] },
     { g:'Account',     items:[{n:'Profile',p:'/profile'}] },
@@ -120,7 +131,7 @@ export default function Layout({ children, user }) {
   if (pathname === '/login' || pathname === '/register') return <>{children}</>;
 
   return (
-    <div className="h-screen overflow-hidden bg-[#050c0d] text-[#b8cdd0] flex">
+    <div className="h-screen overflow-hidden bg-[#05080c] text-[#c5cdd4] flex">
 
       {/* ── SIDEBAR ─────────────────────────────────────────────────────── */}
       <aside className={`
@@ -134,13 +145,9 @@ export default function Layout({ children, user }) {
       `}>
 
         {/* logo */}
-        <div className="flex items-center justify-between px-4 h-14 border-b border-white/[0.06] flex-shrink-0">
-          <Link href="/dashboard" className="flex items-center gap-2.5">
-            <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${cfg.av} flex items-center justify-center text-white font-bold text-xs shadow-md`}>CI</div>
-            <div className="leading-tight">
-              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/35">{cfg.label}</p>
-              <p className="text-[13px] font-bold text-white">Codeat ERP</p>
-            </div>
+        <div className="flex items-center justify-between px-3 h-16 border-b border-[#7fd4e4]/10 flex-shrink-0">
+          <Link href="/dashboard" className="flex items-center min-w-0">
+            <img src="/codeat-logo.png" alt="Codeat Infotech" className="h-9 w-auto" />
           </Link>
           <button onClick={() => setOpen(false)} className="lg:hidden p-1 rounded-md text-white/30 hover:text-white hover:bg-white/10 transition">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
@@ -151,7 +158,7 @@ export default function Layout({ children, user }) {
         <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4 scrollbar-thin scrollbar-thumb-white/10">
           {groups.map(grp => (
             <div key={grp.g}>
-              <p className="px-2 mb-1 text-[9.5px] font-semibold uppercase tracking-[0.22em] text-white/20 select-none">{grp.g}</p>
+              <p className="px-2 mb-1 text-[9.5px] font-semibold uppercase tracking-[0.22em] text-[#7fd4e4]/45 select-none">{grp.g}</p>
               {grp.items.map(item => {
                 const isAct = pathname === item.p;
                 return (
@@ -196,7 +203,7 @@ export default function Layout({ children, user }) {
       <div className="flex flex-1 flex-col min-w-0 h-full overflow-hidden">
 
         {/* topbar */}
-        <header className="flex-shrink-0 border-b border-white/[0.06] bg-[#060d0e]/90 backdrop-blur-xl">
+        <header className="flex-shrink-0 border-b border-[#7fd4e4]/10 bg-[#070b10]/95 backdrop-blur-xl">
 
           {/* top row: hamburger + right controls */}
           <div className="flex items-center gap-3 px-4 h-14">
@@ -289,7 +296,7 @@ export default function Layout({ children, user }) {
         </main>
 
         {/* footer */}
-        <footer className="flex-shrink-0 h-9 flex items-center justify-between px-5 border-t border-white/[0.05] bg-[#060d0e]/60 text-[11px] text-white/20">
+        <footer className="flex-shrink-0 h-9 flex items-center justify-between px-5 border-t border-[#7fd4e4]/10 bg-[#070b10]/80 text-[11px] text-[#8d949b]">
           <span>© {new Date().getFullYear()} Codeat Infotech</span>
           <div className="flex items-center gap-4">
             {cfg.fl.map(l => (

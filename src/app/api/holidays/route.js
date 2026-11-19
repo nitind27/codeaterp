@@ -3,9 +3,11 @@ import pool from '../../../../lib/db.js';
 import { authenticate, authorize } from '../../../../lib/auth.js';
 import { calculateDaysBetween } from '../../../../lib/utils.js';
 import { logActivity } from '../../../../lib/logger.js';
+import { ensureSchema } from '../../../../lib/ensureSchema.js';
 
 export async function GET(req) {
   try {
+    await ensureSchema();
     const authResult = await authenticate(req);
     if (authResult.error) {
       return NextResponse.json(
@@ -66,6 +68,7 @@ export async function GET(req) {
 
 export async function POST(req) {
   try {
+    await ensureSchema();
     const authResult = await authorize('admin', 'hr')(req);
     if (authResult.error) {
       return NextResponse.json(

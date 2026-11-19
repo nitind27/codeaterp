@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Layout from '../../components/Layout';
 import LogoLoader from '../../components/LogoLoader';
+import { Pager, usePageSlice } from '../../components/TableKit';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import jsPDF from 'jspdf';
@@ -31,8 +32,14 @@ export default function FeesPage() {
   const [feesFormData, setFeesFormData] = useState({
     employeeId: '',
     totalFees: '',
-    notes: ''
+    notes: '',
+    periodStart: '',
+    periodEnd: ''
   });
+  const [feeSearch, setFeeSearch] = useState('');
+  const [feeStatus, setFeeStatus] = useState('');
+  const [feeFrom, setFeeFrom] = useState('');
+  const [feeTo, setFeeTo] = useState('');
   const [paymentFormData, setPaymentFormData] = useState({
     internFeesId: '',
     amount: '',
@@ -115,7 +122,7 @@ export default function FeesPage() {
       if (data.success) {
         toast.success(data.message);
         setShowFeesModal(false);
-        setFeesFormData({ employeeId: '', totalFees: '', notes: '' });
+        setFeesFormData({ employeeId: '', totalFees: '', notes: '', periodStart: '', periodEnd: '' });
         loadData();
       } else {
         toast.error(data.error || 'Failed to set fees');
@@ -531,6 +538,19 @@ export default function FeesPage() {
     }
   };
 
+  const day = (value) => value ? String(value).slice(0, 10) : '';
+  const filteredFees = useMemo(() => fees.filter((fee) => {
+    const q = feeSearch.trim().toLowerCase();
+    const hit = !q || `${fee.employeeName || ''} ${fee.employeeCode || ''} ${fee.email || ''}`.toLowerCase().includes(q);
+    const state = Number(fee.remainingAmount) <= 0 ? 'cleared' : Number(fee.paidAmount) > 0 ? 'partial' : 'due';
+    const start = day(fee.periodStart) || day(fee.createdAt);
+    const end = day(fee.periodEnd) || start;
+    const rangeOk = (!feeFrom || end >= feeFrom) && (!feeTo || start <= feeTo);
+    return hit && (!feeStatus || state === feeStatus) && rangeOk;
+  }), [fees, feeSearch, feeStatus, feeFrom, feeTo]);
+  const feePager = usePageSlice(filteredFees, 8, `${feeSearch}|${feeStatus}|${feeFrom}|${feeTo}|${filteredFees.length}`);
+  const assignedInternIds = new Set(fees.map((fee) => String(fee.employeeId)));
+
   if (loading || !user) {
     return <LogoLoader />;
   }
@@ -555,7 +575,7 @@ export default function FeesPage() {
               <button
                 onClick={() => {
                   setSelectedIntern(null);
-                  setFeesFormData({ employeeId: '', totalFees: '', notes: '' });
+                  setFeesFormData({ employeeId: '', totalFees: '', notes: '', periodStart: '', periodEnd: '' });
                   setShowFeesModal(true);
                 }}
                 className="px-6 py-3.5 bg-gradient-to-r from-codeat-teal to-codeat-accent text-white rounded-xl hover:from-codeat-teal/90 hover:to-codeat-accent/90 transition-all duration-300 font-semibold shadow-lg shadow-codeat-teal/30 hover:shadow-codeat-teal/50 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
@@ -570,7 +590,21 @@ export default function FeesPage() {
         </div>
 
         {/* Fees List */}
-        {fees.length === 0 ? (
+        {isAdmin && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <input value={feeSearch} onChange={(e) => setFeeSearch(e.target.value)} className="input-field" placeholder="Search name, email, employee ID" />
+            <select value={feeStatus} onChange={(e) => setFeeStatus(e.target.value)} className="input-field">
+              <option value="">All payment status</option>
+              <option value="due">Due</option>
+              <option value="partial">Partial</option>
+              <option value="cleared">Cleared</option>
+            </select>
+            <input type="date" value={feeFrom} onChange={(e) => setFeeFrom(e.target.value)} className="input-field" />
+            <input type="date" value={feeTo} onChange={(e) => setFeeTo(e.target.value)} className="input-field" />
+          </div>
+        )}
+
+        {filteredFees.length === 0 ? (
           <div className="bg-codeat-mid rounded-2xl border border-codeat-muted/30 p-12 text-center">
             <div className="text-6xl mb-4">💰</div>
             <h3 className="text-codeat-silver font-bold text-xl mb-2">No Fees Records Found</h3>
@@ -597,6 +631,7 @@ export default function FeesPage() {
                     {isAdmin && (
                       <th className="px-4 sm:px-6 py-4 text-left text-codeat-silver font-semibold text-xs sm:text-sm uppercase tracking-wider">Intern</th>
                     )}
+                    <th className="px-4 sm:px-6 py-4 text-left text-codeat-silver font-semibold text-xs sm:text-sm uppercase tracking-wider hidden lg:table-cell">Period</th>
                     <th className="px-4 sm:px-6 py-4 text-left text-codeat-silver font-semibold text-xs sm:text-sm uppercase tracking-wider">Total Fees</th>
                     <th className="px-4 sm:px-6 py-4 text-left text-codeat-silver font-semibold text-xs sm:text-sm uppercase tracking-wider">Paid</th>
                     <th className="px-4 sm:px-6 py-4 text-left text-codeat-silver font-semibold text-xs sm:text-sm uppercase tracking-wider">Remaining</th>
@@ -605,7 +640,7 @@ export default function FeesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {fees.map((fee) => (
+                  {feePager.rows.map((fee) => (
                     <React.Fragment key={fee.id}>
                     <tr className="hover:bg-codeat-dark/40 transition-colors duration-200">
                       {isAdmin && (
@@ -616,6 +651,11 @@ export default function FeesPage() {
                           </div>
                         </td>
                       )}
+                      <td className="px-4 sm:px-6 py-4 text-codeat-gray text-xs hidden lg:table-cell">
+                        {fee.periodStart ? new Date(fee.periodStart).toLocaleDateString('en-IN') : '—'}
+                        {' → '}
+                        {fee.periodEnd ? new Date(fee.periodEnd).toLocaleDateString('en-IN') : '—'}
+                      </td>
                       <td className="px-4 sm:px-6 py-4 text-codeat-silver font-medium">
                         {fmt(fee.totalFees)}
                       </td>
@@ -733,6 +773,7 @@ export default function FeesPage() {
                 </tbody>
               </table>
             </div>
+            {isAdmin && <Pager {...feePager} />}
           </div>
         )}
 
@@ -800,11 +841,14 @@ export default function FeesPage() {
                     required
                   >
                     <option value="">Select intern</option>
-                    {interns.map((intern) => (
-                      <option key={intern.id} value={intern.id}>
-                        {intern.fullName} ({intern.employeeId}) - {intern.email}
-                      </option>
-                    ))}
+                    {interns.map((intern) => {
+                      const taken = assignedInternIds.has(String(intern.id));
+                      return (
+                        <option key={intern.id} value={intern.id} disabled={taken}>
+                          {intern.fullName} ({intern.employeeId}) - {intern.email}{taken ? ' — already added' : ''}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
                 <div>
@@ -821,6 +865,17 @@ export default function FeesPage() {
                     placeholder="Enter total fees amount"
                     required
                   />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-codeat-silver text-sm font-semibold mb-2.5">Duration start</label>
+                    <input type="date" value={feesFormData.periodStart || ''} onChange={(e) => setFeesFormData({ ...feesFormData, periodStart: e.target.value })} className="input-field" />
+                    <p className="text-codeat-gray text-xs mt-1">Intern sees this fee from this date.</p>
+                  </div>
+                  <div>
+                    <label className="block text-codeat-silver text-sm font-semibold mb-2.5">Duration end</label>
+                    <input type="date" value={feesFormData.periodEnd || ''} onChange={(e) => setFeesFormData({ ...feesFormData, periodEnd: e.target.value })} className="input-field" />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-codeat-silver text-sm font-semibold mb-2.5">Notes</label>
@@ -1140,8 +1195,8 @@ export default function FeesPage() {
 
                 {/* Live preview — after this payment */}
                 {reminderData.requestAmount && parseFloat(reminderData.requestAmount) > 0 && parseFloat(reminderData.requestAmount) <= reminderTarget.remainingAmount && (
-                  <div className="bg-[#0d2f32] border border-[#1A656D]/40 rounded-xl p-4 space-y-2">
-                    <p className="text-[#7dd3d8] text-xs font-bold uppercase tracking-wider mb-3">📊 After This Payment</p>
+                  <div className="bg-[#0c1218] border border-[#2a6f8a]/40 rounded-xl p-4 space-y-2">
+                    <p className="text-[#7fd4e4] text-xs font-bold uppercase tracking-wider mb-3">📊 After This Payment</p>
                     <div className="flex justify-between text-sm">
                       <span className="text-white/50">Total Fees</span>
                       <span className="text-white font-semibold">{fmt(reminderTarget.totalFees)}</span>
@@ -1202,7 +1257,7 @@ export default function FeesPage() {
 
                 <div className="flex gap-3 pt-1 border-t border-codeat-muted/30">
                   <button type="submit" disabled={reminderSending}
-                    className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-semibold hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                    className="flex-1 py-3 bg-gradient-to-r from-[#1c3d66] to-[#7fd4e4] text-white rounded-xl font-semibold hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                     {reminderSending
                       ? <><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Sending…</>
                       : <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>Send Reminder</>

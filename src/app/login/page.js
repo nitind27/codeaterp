@@ -128,7 +128,7 @@ export default function LoginPage() {
   return (
     <div className="login-page min-h-screen relative overflow-hidden">
       {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#1A656D] via-[#0A2A2D] to-[#030a0b]">
+      <div className="absolute inset-0 bg-gradient-to-br from-[#2a6f8a] via-[#0c1218] to-[#05080c]">
         {/* Animated Grid */}
         <div className="absolute inset-0 bg-grid-pattern opacity-[0.05]"></div>
         
@@ -160,7 +160,7 @@ export default function LoginPage() {
           <div className="max-w-md text-center">
             {/* Logo */}
             <div className="mb-8 logo-float">
-              <div className="inline-block p-6 rounded-3xl bg-gradient-to-br from-[#1A656D]/30 to-transparent backdrop-blur-sm border border-[#31747c]/30 shadow-2xl shadow-[#1A656D]/20">
+              <div className="inline-block p-6 rounded-3xl bg-gradient-to-br from-[#2a6f8a]/30 to-transparent backdrop-blur-sm border border-[#4eb8cc]/30 shadow-2xl shadow-[#2a6f8a]/20">
                 <Image
                   src="/H_LOGO-01.png"
                   alt="Codeat Infotech Logo"
@@ -174,11 +174,11 @@ export default function LoginPage() {
             
             {/* Tagline */}
             <h1 className="text-4xl font-bold text-white mb-4 tracking-tight">
-              <span className="bg-gradient-to-r from-[#F6FBFB] via-[#e8f0f0] to-[#bad1d3] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#f4f7f8] via-[#d7dee6] to-[#7fd4e4] bg-clip-text text-transparent">
                 Enterprise Resource
               </span>
               <br />
-              <span className="bg-gradient-to-r from-[#1A656D] to-[#31747c] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#2a6f8a] to-[#4eb8cc] bg-clip-text text-transparent">
                 Planning System
               </span>
             </h1>
@@ -192,7 +192,7 @@ export default function LoginPage() {
               {['Real-time Analytics', 'Team Management', 'Project Tracking', 'HR Solutions'].map((feature, idx) => (
                 <div 
                   key={feature}
-                  className="feature-pill px-4 py-2 rounded-full text-sm font-medium text-[#e8f0f0]/90 bg-[#0d3337]/50 border border-[#12474c]/60 backdrop-blur-sm"
+                  className="feature-pill px-4 py-2 rounded-full text-sm font-medium text-[#e8f4f7]/90 bg-[#0e1c2c]/50 border border-[#16324f]/60 backdrop-blur-sm"
                   style={{ animationDelay: `${0.8 + idx * 0.1}s` }}
                 >
                   {feature}
@@ -208,12 +208,12 @@ export default function LoginPage() {
             {/* Login Card */}
             <div className="login-card relative">
               {/* Card Glow Effect */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-[#1A656D]/60 via-[#31747c]/60 to-[#1A656D]/60 rounded-3xl blur-xl opacity-40 animate-pulse-slow"></div>
+              <div className="absolute -inset-1 bg-gradient-to-r from-[#2a6f8a]/60 via-[#4eb8cc]/60 to-[#2a6f8a]/60 rounded-3xl blur-xl opacity-40 animate-pulse-slow"></div>
               
-              <div className="relative bg-[#0A2A2D]/95 backdrop-blur-xl rounded-2xl border border-[#12474c]/60 p-8 lg:p-10 shadow-2xl">
+              <div className="relative bg-[#0c1218]/95 backdrop-blur-xl rounded-2xl border border-[#16324f]/60 p-8 lg:p-10 shadow-2xl">
                 {/* Mobile Logo */}
                 <div className="lg:hidden text-center mb-8">
-                  <div className="inline-block p-4 rounded-2xl bg-[#081e21]/60 border border-[#12474c]/40 mb-4">
+                  <div className="inline-block p-4 rounded-2xl bg-[#070b10]/60 border border-[#16324f]/40 mb-4">
                     <Image
                       src="/H_LOGO-01.png"
                       alt="Codeat Infotech Logo"
@@ -227,12 +227,12 @@ export default function LoginPage() {
 
                 {/* Header */}
                 <div className="text-center mb-8">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#1A656D] to-[#175b62] mb-4 shadow-lg shadow-[#1A656D]/40">
-                    <svg className="w-8 h-8 text-[#F6FBFB]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#2a6f8a] to-[#1c3d66] mb-4 shadow-lg shadow-[#2a6f8a]/40">
+                    <svg className="w-8 h-8 text-[#f4f7f8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   </div>
-                  <h2 className="text-2xl font-bold text-[#F6FBFB] mb-2">Welcome Back</h2>
+                  <h2 className="text-2xl font-bold text-[#f4f7f8] mb-2">Welcome Back</h2>
                   <p className="text-[#8db2b6] text-sm">Sign in to continue to your dashboard</p>
                 </div>
 
@@ -254,12 +254,12 @@ export default function LoginPage() {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Email Field */}
                   <div className="form-group">
-                    <label className="block text-[#e8f0f0] text-sm font-medium mb-2">
+                    <label className="block text-[#e8f4f7] text-sm font-medium mb-2">
                       Email Address
                     </label>
-                    <div className={`input-wrapper relative rounded-xl transition-all duration-300 ${focusedField === 'email' ? 'ring-2 ring-[#1A656D]/60 shadow-lg shadow-[#1A656D]/30' : ''}`}>
+                    <div className={`input-wrapper relative rounded-xl transition-all duration-300 ${focusedField === 'email' ? 'ring-2 ring-[#2a6f8a]/60 shadow-lg shadow-[#2a6f8a]/30' : ''}`}>
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-                        <svg className={`w-5 h-5 transition-colors duration-300 ${focusedField === 'email' ? 'text-[#31747c]' : 'text-[#5f9399]'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className={`w-5 h-5 transition-colors duration-300 ${focusedField === 'email' ? 'text-[#4eb8cc]' : 'text-[#8d949b]'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
                       </div>
@@ -269,10 +269,10 @@ export default function LoginPage() {
                         onChange={handleEmailChange}
                         onFocus={() => setFocusedField('email')}
                         onBlur={() => setFocusedField(null)}
-                        className={`w-full pl-12 pr-4 py-3.5 bg-[#081e21]/80 border rounded-xl text-[#F6FBFB] placeholder-[#5f9399]/70 focus:outline-none transition-all duration-300 ${
+                        className={`w-full pl-12 pr-4 py-3.5 bg-[#070b10]/80 border rounded-xl text-[#f4f7f8] placeholder-[#8d949b]/70 focus:outline-none transition-all duration-300 ${
                           errors.email || error
                             ? 'border-red-500/50 bg-red-500/5'
-                            : 'border-[#12474c]/60 hover:border-[#175b62] focus:border-[#1A656D]'
+                            : 'border-[#16324f]/60 hover:border-[#1c3d66] focus:border-[#2a6f8a]'
                         }`}
                         placeholder="Enter your email"
                         required
@@ -290,12 +290,12 @@ export default function LoginPage() {
 
                   {/* Password Field */}
                   <div className="form-group">
-                    <label className="block text-[#e8f0f0] text-sm font-medium mb-2">
+                    <label className="block text-[#e8f4f7] text-sm font-medium mb-2">
                       Password
                     </label>
-                    <div className={`input-wrapper relative rounded-xl transition-all duration-300 ${focusedField === 'password' ? 'ring-2 ring-[#1A656D]/60 shadow-lg shadow-[#1A656D]/30' : ''}`}>
+                    <div className={`input-wrapper relative rounded-xl transition-all duration-300 ${focusedField === 'password' ? 'ring-2 ring-[#2a6f8a]/60 shadow-lg shadow-[#2a6f8a]/30' : ''}`}>
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-                        <svg className={`w-5 h-5 transition-colors duration-300 ${focusedField === 'password' ? 'text-[#31747c]' : 'text-[#5f9399]'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className={`w-5 h-5 transition-colors duration-300 ${focusedField === 'password' ? 'text-[#4eb8cc]' : 'text-[#8d949b]'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
                       </div>
@@ -305,10 +305,10 @@ export default function LoginPage() {
                         onChange={handlePasswordChange}
                         onFocus={() => setFocusedField('password')}
                         onBlur={() => setFocusedField(null)}
-                        className={`w-full pl-12 pr-12 py-3.5 bg-[#081e21]/80 border rounded-xl text-[#F6FBFB] placeholder-[#5f9399]/70 focus:outline-none transition-all duration-300 ${
+                        className={`w-full pl-12 pr-12 py-3.5 bg-[#070b10]/80 border rounded-xl text-[#f4f7f8] placeholder-[#8d949b]/70 focus:outline-none transition-all duration-300 ${
                           errors.password || error
                             ? 'border-red-500/50 bg-red-500/5'
-                            : 'border-[#12474c]/60 hover:border-[#175b62] focus:border-[#1A656D]'
+                            : 'border-[#16324f]/60 hover:border-[#1c3d66] focus:border-[#2a6f8a]'
                         }`}
                         placeholder="Enter your password"
                         required
@@ -316,7 +316,7 @@ export default function LoginPage() {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-[#5f9399] hover:text-[#31747c] transition-colors duration-300 z-10"
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-[#8d949b] hover:text-[#4eb8cc] transition-colors duration-300 z-10"
                       >
                         {showPassword ? (
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -344,24 +344,24 @@ export default function LoginPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="login-btn relative w-full py-4 rounded-xl font-semibold text-[#F6FBFB] overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="login-btn relative w-full py-4 rounded-xl font-semibold text-[#f4f7f8] overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {/* Button Background */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#1A656D] via-[#175b62] to-[#1A656D] bg-[length:200%_100%] animate-gradient-x"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#2a6f8a] via-[#1c3d66] to-[#2a6f8a] bg-[length:200%_100%] animate-gradient-x"></div>
                     
                     {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-[#F6FBFB]/0 group-hover:bg-[#F6FBFB]/10 transition-all duration-300"></div>
+                    <div className="absolute inset-0 bg-[#f4f7f8]/0 group-hover:bg-[#f4f7f8]/10 transition-all duration-300"></div>
                     
                     {/* Button Shine Effect */}
                     <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                      <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 bg-gradient-to-r from-transparent via-[#F6FBFB]/20 to-transparent"></div>
+                      <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 bg-gradient-to-r from-transparent via-[#f4f7f8]/20 to-transparent"></div>
                     </div>
                     
                     {/* Button Content */}
                     <span className="relative flex items-center justify-center">
                       {loading ? (
                         <>
-                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-[#F6FBFB]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-[#f4f7f8]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
@@ -381,7 +381,7 @@ export default function LoginPage() {
 
                 {/* Footer */}
                 <div className="mt-8 text-center">
-                  <p className="text-[#5f9399]/70 text-xs">
+                  <p className="text-[#8d949b]/70 text-xs">
                     © 2026 Codeat Infotech. All rights reserved.
                   </p>
                 </div>

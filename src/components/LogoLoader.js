@@ -2,11 +2,11 @@
 
 export default function LogoLoader() {
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#030a0b] overflow-hidden">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#05080c] overflow-hidden">
 
       {/* ── ambient background orbs ── */}
-      <div className="absolute w-[600px] h-[600px] rounded-full bg-[#1A656D]/8 blur-[120px] animate-[orb1_8s_ease-in-out_infinite]" />
-      <div className="absolute w-[400px] h-[400px] rounded-full bg-[#31747c]/6 blur-[100px] animate-[orb2_10s_ease-in-out_infinite]" />
+      <div className="absolute w-[600px] h-[600px] rounded-full bg-[#2a6f8a]/8 blur-[120px] animate-[orb1_8s_ease-in-out_infinite]" />
+      <div className="absolute w-[400px] h-[400px] rounded-full bg-[#4eb8cc]/6 blur-[100px] animate-[orb2_10s_ease-in-out_infinite]" />
 
       {/* ── center content ── */}
       <div className="relative flex flex-col items-center gap-10">
@@ -17,7 +17,7 @@ export default function LogoLoader() {
           {/* ring 1 — slow outer */}
           <svg className="absolute inset-0 w-full h-full animate-[spin_3s_linear_infinite]" viewBox="0 0 112 112">
             <circle cx="56" cy="56" r="50"
-              fill="none" stroke="#1A656D" strokeWidth="1.5"
+              fill="none" stroke="#2a6f8a" strokeWidth="1.5"
               strokeDasharray="80 235" strokeLinecap="round"
               opacity="0.35"/>
           </svg>
@@ -25,7 +25,7 @@ export default function LogoLoader() {
           {/* ring 2 — medium, reverse */}
           <svg className="absolute inset-0 w-full h-full animate-[spin_2s_linear_infinite_reverse]" viewBox="0 0 112 112">
             <circle cx="56" cy="56" r="42"
-              fill="none" stroke="#31747c" strokeWidth="2"
+              fill="none" stroke="#4eb8cc" strokeWidth="2"
               strokeDasharray="55 209" strokeLinecap="round"
               opacity="0.5"/>
           </svg>
@@ -34,7 +34,7 @@ export default function LogoLoader() {
           <svg className="absolute inset-0 w-full h-full animate-[spin_1.2s_linear_infinite]" viewBox="0 0 112 112">
             <defs>
               <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#1A656D" stopOpacity="0"/>
+                <stop offset="0%" stopColor="#2a6f8a" stopOpacity="0"/>
                 <stop offset="100%" stopColor="#38bdf8" stopOpacity="1"/>
               </linearGradient>
             </defs>
@@ -46,7 +46,7 @@ export default function LogoLoader() {
           {/* pulsing dot ring */}
           {[0,60,120,180,240,300].map((deg, i) => (
             <div key={deg}
-              className="absolute w-1.5 h-1.5 rounded-full bg-[#1A656D]"
+              className="absolute w-1.5 h-1.5 rounded-full bg-[#2a6f8a]"
               style={{
                 top: `${50 - 44 * Math.cos(deg * Math.PI / 180)}%`,
                 left: `${50 + 44 * Math.sin(deg * Math.PI / 180)}%`,
@@ -57,7 +57,7 @@ export default function LogoLoader() {
           ))}
 
           {/* center logo mark */}
-          <div className="relative z-10 w-14 h-14 rounded-2xl bg-gradient-to-br from-[#1A656D] to-[#0d3337] flex items-center justify-center shadow-[0_0_30px_rgba(26,101,109,0.5)] animate-[logoPulse_2s_ease-in-out_infinite]">
+          <div className="relative z-10 w-14 h-14 rounded-2xl bg-gradient-to-br from-[#2a6f8a] to-[#0e1c2c] flex items-center justify-center shadow-[0_0_30px_rgba(127,212,228,0.35)] animate-[logoPulse_2s_ease-in-out_infinite]">
             <span className="text-white font-black text-xl tracking-tight select-none">CI</span>
           </div>
         </div>
@@ -65,15 +65,15 @@ export default function LogoLoader() {
         {/* ── brand name ── */}
         <div className="flex flex-col items-center gap-1.5">
           <div className="flex items-baseline gap-0.5">
-            <span className="text-3xl font-black text-[#1A656D] tracking-tight">Code</span>
-            <span className="text-3xl font-black text-[#F6FBFB] tracking-tight">at</span>
+            <span className="text-3xl font-black text-[#2a6f8a] tracking-tight">Code</span>
+            <span className="text-3xl font-black text-[#f4f7f8] tracking-tight">at</span>
           </div>
-          <span className="text-[11px] font-semibold tracking-[0.4em] text-[#8db2b6] uppercase">Infotech</span>
+          <span className="text-[11px] font-semibold tracking-[0.4em] text-[#9aa3ab] uppercase">Infotech</span>
         </div>
 
         {/* ── progress bar ── */}
-        <div className="w-40 h-0.5 rounded-full bg-[#0d3337] overflow-hidden">
-          <div className="h-full rounded-full bg-gradient-to-r from-[#1A656D] via-[#38bdf8] to-[#1A656D] bg-[length:200%_100%] animate-[shimmer_1.5s_linear_infinite]"/>
+        <div className="w-40 h-0.5 rounded-full bg-[#0e1c2c] overflow-hidden">
+          <div className="h-full rounded-full bg-gradient-to-r from-[#2a6f8a] via-[#38bdf8] to-[#2a6f8a] bg-[length:200%_100%] animate-[shimmer_1.5s_linear_infinite]"/>
         </div>
 
       </div>

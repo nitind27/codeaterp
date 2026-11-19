@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
 const ini = (n) => n ? n.split(' ').map(c => c[0]).join('').slice(0, 2).toUpperCase() : '?';
-const AV = ['from-[#1A656D] to-[#31747c]','from-purple-600 to-violet-500','from-blue-600 to-sky-500','from-emerald-600 to-green-500','from-amber-500 to-orange-400','from-rose-500 to-pink-500'];
+const AV = ['from-[#1c3d66] to-[#7fd4e4]','from-[#16324f] to-[#4eb8cc]','from-[#0e1c2c] to-[#7fd4e4]','from-[#2a6f8a] to-[#d7dee6]','from-[#1c3d66] to-[#a9d4e0]','from-[#16324f] to-[#f4f7f8]'];
 const av = (id) => AV[(id || 0) % AV.length];
 const TI = { general:'🌐', department:'🏢', project:'📁', direct:'👤' };
 
@@ -149,7 +149,7 @@ export default function DiscussionsPage() {
     <Layout user={user}>
       {/* ── OUTER CONTAINER ── */}
       <div
-        className="-mx-4 -my-6 sm:-mx-6 lg:-mx-8 flex bg-[#050c0d] rounded-xl overflow-hidden border border-white/[0.06]"
+        className="-mx-4 -my-6 sm:-mx-6 lg:-mx-8 flex bg-[#05080c] rounded-xl overflow-hidden border border-[#7fd4e4]/10"
         style={{ height: 'calc(100vh - 130px)' }}
       >
 
@@ -157,7 +157,7 @@ export default function DiscussionsPage() {
             Desktop: always visible (w-64)
             Mobile:  full width, hidden when chat is open */}
         <div className={`
-          flex-shrink-0 flex flex-col border-r border-white/[0.06] bg-[#060d0e]
+          flex-shrink-0 flex flex-col border-r border-[#7fd4e4]/10 bg-[#070b10]
           w-full md:w-64
           ${mobileShowChat ? 'hidden md:flex' : 'flex'}
         `}>
@@ -170,7 +170,7 @@ export default function DiscussionsPage() {
               </div>
               <button
                 onClick={() => setShowCreate(true)}
-                className="w-7 h-7 rounded-md bg-[#1A656D]/20 text-[#7dd3d8] hover:bg-[#1A656D]/30 transition flex items-center justify-center"
+                className="w-7 h-7 rounded-md bg-[#2a6f8a]/20 text-[#7fd4e4] hover:bg-[#2a6f8a]/30 transition flex items-center justify-center"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/>
@@ -194,7 +194,7 @@ export default function DiscussionsPage() {
             <div className="flex gap-1">
               {['channels', 'dms'].map(t => (
                 <button key={t} onClick={() => setTab(t)}
-                  className={`flex-1 py-1.5 rounded-md text-[11px] font-semibold transition-all ${tab === t ? 'bg-[#1A656D]/20 text-[#7dd3d8]' : 'text-white/30 hover:text-white/55 hover:bg-white/[0.03]'}`}>
+                  className={`flex-1 py-1.5 rounded-md text-[11px] font-semibold transition-all ${tab === t ? 'bg-[#2a6f8a]/20 text-[#7fd4e4]' : 'text-white/30 hover:text-white/55 hover:bg-white/[0.03]'}`}>
                   {t === 'channels' ? '# Channels' : '💬 Direct'}
                 </button>
               ))}
@@ -211,14 +211,14 @@ export default function DiscussionsPage() {
                     return (
                       <button key={ch.id}
                         onClick={() => ch.is_member ? selectChannel(ch) : joinChannel(ch.id)}
-                        className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left transition-all group ${act ? 'bg-[#1A656D]/20 border border-[#1A656D]/25' : 'hover:bg-white/[0.04] border border-transparent'}`}>
+                        className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left transition-all group ${act ? 'bg-[#2a6f8a]/20 border border-[#2a6f8a]/25' : 'hover:bg-white/[0.04] border border-transparent'}`}>
                         <span className="text-base flex-shrink-0">{TI[ch.type] || '#'}</span>
                         <div className="flex-1 min-w-0">
                           <p className={`text-xs font-semibold truncate ${act ? 'text-white' : 'text-white/55 group-hover:text-white/80'}`}>#{ch.name}</p>
                           <p className="text-[10px] text-white/20">{ch.member_count || 0} members</p>
                         </div>
                         {!ch.is_member && (
-                          <span className="text-[9px] font-bold text-[#7dd3d8] bg-[#1A656D]/20 px-1.5 py-0.5 rounded-full flex-shrink-0">Join</span>
+                          <span className="text-[9px] font-bold text-[#7fd4e4] bg-[#2a6f8a]/20 px-1.5 py-0.5 rounded-full flex-shrink-0">Join</span>
                         )}
                       </button>
                     );
@@ -234,12 +234,12 @@ export default function DiscussionsPage() {
                       const isOnline = online.has(peerId);
                       return (
                         <button key={ch.id} onClick={() => selectChannel(ch)}
-                          className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left transition-all group ${act ? 'bg-[#1A656D]/20 border border-[#1A656D]/25' : 'hover:bg-white/[0.04] border border-transparent'}`}>
+                          className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left transition-all group ${act ? 'bg-[#2a6f8a]/20 border border-[#2a6f8a]/25' : 'hover:bg-white/[0.04] border border-transparent'}`}>
                           <div className="relative flex-shrink-0">
                             <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${av(peerId || ch.id)} flex items-center justify-center text-white font-bold text-[10px]`}>
                               {ini(ch.name)}
                             </div>
-                            {isOnline && <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-green-400 border border-[#060d0e]"/>}
+                            {isOnline && <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-green-400 border border-[#070b10]"/>}
                           </div>
                           <p className={`text-xs font-semibold truncate flex-1 ${act ? 'text-white' : 'text-white/55 group-hover:text-white/80'}`}>{ch.name}</p>
                         </button>
@@ -259,7 +259,7 @@ export default function DiscussionsPage() {
                         <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${av(c.id)} flex items-center justify-center text-white font-bold text-[10px]`}>
                           {ini(c.name)}
                         </div>
-                        {online.has(c.id) && <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-green-400 border border-[#060d0e]"/>}
+                        {online.has(c.id) && <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-green-400 border border-[#070b10]"/>}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-semibold text-white/55 group-hover:text-white/80 truncate">{c.name}</p>
@@ -293,11 +293,11 @@ export default function DiscussionsPage() {
             : (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center px-6">
-                  <div className="w-16 h-16 rounded-2xl bg-[#1A656D]/10 flex items-center justify-center mx-auto mb-4 text-3xl">💬</div>
+                  <div className="w-16 h-16 rounded-2xl bg-[#2a6f8a]/10 flex items-center justify-center mx-auto mb-4 text-3xl">💬</div>
                   <p className="text-white/40 font-semibold mb-1">Select a channel or person</p>
                   <p className="text-white/20 text-sm">to start chatting</p>
                   <button onClick={() => setShowCreate(true)}
-                    className="mt-4 px-4 py-2 bg-gradient-to-r from-[#1A656D] to-[#31747c] text-white rounded-xl text-sm font-semibold hover:opacity-90 active:scale-95 transition-all">
+                    className="mt-4 px-4 py-2 bg-gradient-to-r from-[#2a6f8a] to-[#4eb8cc] text-white rounded-xl text-sm font-semibold hover:opacity-90 active:scale-95 transition-all">
                     Create Channel
                   </button>
                 </div>
@@ -310,10 +310,11 @@ export default function DiscussionsPage() {
       {/* ── CREATE CHANNEL MODAL ── */}
       {showCreate && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="bg-[#0A2A2D] rounded-2xl border border-white/[0.08] w-full max-w-md shadow-2xl">
+          <div className="bg-[#0c1218] rounded-2xl border border-white/[0.08] w-full max-w-md shadow-2xl">
             <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
               <div>
-                <h3 className="text-lg font-bold text-white">Create Channel</h3>
+                <h3 className="text-lg font-bold text-white">Create your group</h3>
+                <p className="text-xs text-white/40 mt-1">Admin can see every group and the discussion inside it.</p>
                 <p className="text-white/30 text-sm mt-0.5">Start a new group discussion</p>
               </div>
               <button onClick={() => setShowCreate(false)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition">
@@ -333,7 +334,7 @@ export default function DiscussionsPage() {
                 <div className="grid grid-cols-3 gap-2">
                   {['general', 'department', 'project'].map(t => (
                     <button key={t} type="button" onClick={() => setNewCh({ ...newCh, type: t })}
-                      className={`py-2 rounded-lg text-xs font-semibold border transition-all ${newCh.type === t ? 'bg-[#1A656D]/20 text-[#7dd3d8] border-[#1A656D]/40' : 'text-white/35 border-white/[0.06] hover:border-white/15 hover:text-white/55'}`}>
+                      className={`py-2 rounded-lg text-xs font-semibold border transition-all ${newCh.type === t ? 'bg-[#2a6f8a]/20 text-[#7fd4e4] border-[#2a6f8a]/40' : 'text-white/35 border-white/[0.06] hover:border-white/15 hover:text-white/55'}`}>
                       {TI[t]} {t.charAt(0).toUpperCase() + t.slice(1)}
                     </button>
                   ))}
@@ -346,7 +347,7 @@ export default function DiscussionsPage() {
               </div>
               <div className="flex gap-3 pt-1">
                 <button type="submit" disabled={creating}
-                  className="flex-1 py-2.5 bg-gradient-to-r from-[#1A656D] to-[#31747c] text-white rounded-xl font-semibold hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                  className="flex-1 py-2.5 bg-gradient-to-r from-[#2a6f8a] to-[#4eb8cc] text-white rounded-xl font-semibold hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                   {creating
                     ? <><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Creating…</>
                     : 'Create Channel'}

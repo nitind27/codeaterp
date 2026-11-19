@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Layout from '../../components/Layout';
 import LogoLoader from '../../components/LogoLoader';
+import { Pager, usePageSlice } from '../../components/TableKit';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
@@ -85,6 +86,9 @@ export default function AttendancePage() {
   const [editRec, setEditRec]   = useState(null);
   const [editForm, setEditForm] = useState({ clockIn: '', clockOut: '', status: 'present', notes: '' });
   const [saving, setSaving]     = useState(false);
+  const [summary, setSummary]   = useState(null);
+  const [tableSearch, setTableSearch] = useState('');
+  const [resettingId, setResettingId] = useState(null);
 
   const isAdmin = user?.role === 'admin' || user?.role === 'hr';
 
@@ -245,10 +249,15 @@ export default function AttendancePage() {
       });
       const d = await res.json();
       if (d.success) {
-        const msg = d.distanceMeters !== undefined
-          ? `Clocked out! (${d.distanceMeters}m from office)`
-          : 'Clocked out!';
-        toast.success(msg);
+        const hours = Number(d.totalHours || 0);
+        const h = Math.floor(hours);
+        const m = Math.round((hours - h) * 60);
+        setSummary({
+          clockIn: todayAtt?.clockIn,
+          clockOut: d.time,
+          hoursLabel: m ? `${h}h ${m}m` : `${h}h`,
+          hours,
+        });
         await loadOwn();
       } else {
         toast.error(d.error || 'Failed to clock out', { duration: 6000 });
@@ -292,6 +301,34 @@ export default function AttendancePage() {
     } catch { toast.error('Error updating attendance'); }
     finally { setSaving(false); }
   };
+
+  const resetDay = async (rec) => {
+    if (!window.confirm(`Reset ${rec.employeeName}'s attendance? They will be able to clock in again.`)) return;
+    setResettingId(rec.id);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`/api/attendance/${rec.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ reset: true }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(data.message);
+        await loadAdminData(filterEmp, filterStatus, filterStart, filterEnd);
+      } else toast.error(data.error || 'Reset failed');
+    } catch { toast.error('Reset failed'); }
+    finally { setResettingId(null); }
+  };
+
+  const matchesSearch = (att) => {
+    const q = tableSearch.trim().toLowerCase();
+    if (!q) return true;
+    return `${att.employeeName || ''} ${att.employeeCode || ''} ${att.status || ''}`.toLowerCase().includes(q);
+  };
+  const todayRows = adminToday.filter(matchesSearch);
+  const monthFiltered = (isAdmin ? adminMonth : monthAtt).filter(matchesSearch);
+  const monthPager = usePageSlice(monthFiltered, 8, `${tableSearch}|${filterEmp}|${filterStatus}|${filterStart}|${filterEnd}|${monthFiltered.length}`);
 
   if (loading || !user) return <LogoLoader />;
 
@@ -408,6 +445,7 @@ export default function AttendancePage() {
                 </select>
                 <input type="date" value={filterStart} onChange={e => setFilterStart(e.target.value)} className="input-field text-sm py-2" placeholder="From date"/>
                 <input type="date" value={filterEnd} onChange={e => setFilterEnd(e.target.value)} className="input-field text-sm py-2" placeholder="To date"/>
+                <input value={tableSearch} onChange={e => setTableSearch(e.target.value)} className="input-field text-sm py-2 col-span-2 sm:col-span-4" placeholder="Search employee name or ID"/>
               </div>
               <div className="flex gap-2 mt-3">
                 <button onClick={applyFilters} disabled={adminLoading}
@@ -434,9 +472,9 @@ export default function AttendancePage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-codeat-muted/10">
-                  {adminToday.length === 0 ? (
+                  {todayRows.length === 0 ? (
                     <tr><td colSpan={7} className="px-4 py-10 text-center text-codeat-gray">No records for today</td></tr>
-                  ) : adminToday.map(att => (
+                  ) : todayRows.map(att => (
                     <tr key={att.id} className="hover:bg-codeat-dark/30 transition-colors">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2.5">
@@ -460,10 +498,18 @@ export default function AttendancePage() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <button onClick={() => openEdit(att)}
-                          className="p-1.5 rounded-lg bg-codeat-teal/10 text-codeat-teal hover:bg-codeat-teal/20 transition" title="Edit">
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                        </button>
+                        <div className="flex justify-end gap-1">
+                          {(att.clockIn || att.clockOut) && (
+                            <button onClick={() => resetDay(att)} disabled={resettingId === att.id}
+                              className="px-2 py-1 rounded-lg bg-amber-500/15 text-amber-300 text-xs font-semibold hover:bg-amber-500/25 disabled:opacity-50" title="Reset so they can clock in again">
+                              Reset
+                            </button>
+                          )}
+                          <button onClick={() => openEdit(att)}
+                            className="p-1.5 rounded-lg bg-codeat-teal/10 text-codeat-teal hover:bg-codeat-teal/20 transition" title="Edit">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -479,8 +525,13 @@ export default function AttendancePage() {
             <h2 className="text-xl font-bold text-codeat-silver">
               {isAdmin ? 'Monthly Records' : "This Month's Attendance"}
             </h2>
-            <span className="text-codeat-gray text-sm">{(isAdmin ? adminMonth : monthAtt).length} records</span>
+            <span className="text-codeat-gray text-sm">{monthPager.total} records</span>
           </div>
+          {!isAdmin && (
+            <div className="px-5 pt-4">
+              <input value={tableSearch} onChange={e => setTableSearch(e.target.value)} className="input-field text-sm py-2" placeholder="Search status or date notes"/>
+            </div>
+          )}
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -495,9 +546,9 @@ export default function AttendancePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-codeat-muted/10">
-                {(isAdmin ? adminMonth : monthAtt).length === 0 ? (
+                {monthPager.rows.length === 0 ? (
                   <tr><td colSpan={isAdmin ? 7 : 5} className="px-4 py-10 text-center text-codeat-gray">No records found</td></tr>
-                ) : (isAdmin ? adminMonth : monthAtt).map(att => (
+                ) : monthPager.rows.map(att => (
                   <tr key={att.id} className="hover:bg-codeat-dark/30 transition-colors">
                     {isAdmin && (
                       <td className="px-4 py-3">
@@ -524,10 +575,18 @@ export default function AttendancePage() {
                     </td>
                     {isAdmin && (
                       <td className="px-4 py-3 text-right">
-                        <button onClick={() => openEdit(att)}
-                          className="p-1.5 rounded-lg bg-codeat-teal/10 text-codeat-teal hover:bg-codeat-teal/20 transition" title="Edit">
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                        </button>
+                        <div className="flex justify-end gap-1">
+                          {(att.clockIn || att.clockOut) && (
+                            <button onClick={() => resetDay(att)} disabled={resettingId === att.id}
+                              className="px-2 py-1 rounded-lg bg-amber-500/15 text-amber-300 text-xs font-semibold hover:bg-amber-500/25 disabled:opacity-50">
+                              Reset
+                            </button>
+                          )}
+                          <button onClick={() => openEdit(att)}
+                            className="p-1.5 rounded-lg bg-codeat-teal/10 text-codeat-teal hover:bg-codeat-teal/20 transition" title="Edit">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                          </button>
+                        </div>
                       </td>
                     )}
                   </tr>
@@ -535,9 +594,36 @@ export default function AttendancePage() {
               </tbody>
             </table>
           </div>
+          <Pager {...monthPager} />
         </div>
 
       </div>
+
+      {summary && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-3xl border border-emerald-400/30 bg-gradient-to-b from-[#12352b] to-[#0b1c18] p-6 text-center shadow-2xl">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-400/20 text-3xl">✓</div>
+            <p className="text-xs uppercase tracking-[0.28em] text-emerald-200/80">Clocked out</p>
+            <h3 className="mt-2 text-2xl font-bold text-white">Thank you for today</h3>
+            <p className="mt-2 text-sm text-emerald-100/80">Your attendance is saved. Have a good rest.</p>
+            <div className="mt-5 grid grid-cols-3 gap-2 text-left">
+              <div className="rounded-xl bg-black/20 p-3">
+                <p className="text-[10px] uppercase text-white/50">In</p>
+                <p className="font-semibold text-emerald-300">{summary.clockIn ? toAmPm(summary.clockIn) : '—'}</p>
+              </div>
+              <div className="rounded-xl bg-black/20 p-3">
+                <p className="text-[10px] uppercase text-white/50">Out</p>
+                <p className="font-semibold text-rose-300">{summary.clockOut ? toAmPm(summary.clockOut) : '—'}</p>
+              </div>
+              <div className="rounded-xl bg-black/20 p-3">
+                <p className="text-[10px] uppercase text-white/50">Hours</p>
+                <p className="font-semibold text-white">{summary.hoursLabel}</p>
+              </div>
+            </div>
+            <button onClick={() => setSummary(null)} className="mt-6 w-full rounded-xl bg-white py-3 font-semibold text-slate-900">Done</button>
+          </div>
+        </div>
+      )}
 
       {/* ── EDIT MODAL (admin only) ── */}
       {editRec && (

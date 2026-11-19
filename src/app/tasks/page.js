@@ -311,9 +311,13 @@ export default function TasksPage() {
           <div>
             <h1 className="text-3xl lg:text-4xl font-bold text-codeat-silver mb-2">Tasks</h1>
             <p className="text-codeat-gray text-lg">
-              {canManageTasks ? 'Manage and assign tasks to team members' : 'Manage your assigned tasks and track progress'}
+              {canManageTasks ? 'Manage and assign tasks to team members' : 'Your assigned tasks show here. Submit finished work with a link.'}
             </p>
           </div>
+          <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2">
+          <a href="/submissions" className="px-6 py-3.5 rounded-xl border border-cyan-400/40 text-cyan-200 font-semibold text-center hover:bg-cyan-400/10">
+            Submit work
+          </a>
           {canManageTasks && (
             <button 
               onClick={openNewTaskModal}
@@ -325,6 +329,7 @@ export default function TasksPage() {
               New Task
             </button>
           )}
+          </div>
         </div>
 
         {/* Filter Buttons */}
@@ -347,7 +352,7 @@ export default function TasksPage() {
         {/* Stats Summary */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {[
-            { label: 'Total', count: tasks.length, color: 'from-purple-500 to-purple-600' },
+            { label: 'Total', count: tasks.length, color: 'from-[#1c3d66] to-[#7fd4e4]' },
             { label: 'To Do', count: tasks.filter(t => t.status === 'todo').length, color: 'from-gray-500 to-gray-600' },
             { label: 'In Progress', count: tasks.filter(t => t.status === 'in_progress').length, color: 'from-blue-500 to-blue-600' },
             { label: 'Review', count: tasks.filter(t => t.status === 'review').length, color: 'from-yellow-500 to-yellow-600' },

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Layout from '../../components/Layout';
 import LogoLoader from '../../components/LogoLoader';
+import { Pager, usePageSlice } from '../../components/TableKit';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
@@ -34,6 +35,11 @@ export default function EmployeesPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [deptFilter, setDeptFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -91,6 +97,7 @@ export default function EmployeesPage() {
       salary: emp.salary || '',
       employment_type: emp.employmentType || 'full_time',
       role: emp.role || 'employee',
+      remote_attendance: emp.remoteAttendance ? 1 : 0,
       gender: emp.gender || '',
       address: emp.address || '',
       city: emp.city || '',
@@ -144,6 +151,44 @@ export default function EmployeesPage() {
     finally { setDeleteSubmitting(false); }
   };
 
+  const toggleRemote = async (emp) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`/api/employees/${emp.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ remote_attendance: emp.remoteAttendance ? 0 : 1 })
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(emp.remoteAttendance ? 'Office location required again' : 'Can mark attendance from anywhere');
+        loadEmployees();
+      } else toast.error(data.error || 'Could not update permission');
+    } catch { toast.error('Could not update permission'); }
+  };
+
+  const departments = useMemo(
+    () => [...new Set(employees.map((emp) => emp.department).filter(Boolean))].sort(),
+    [employees]
+  );
+
+  const filteredEmployees = useMemo(() => employees.filter((emp) => {
+    const q = search.trim().toLowerCase();
+    const hit = !q || `${emp.fullName} ${emp.email} ${emp.employeeId} ${emp.phone || ''} ${emp.designation || ''}`.toLowerCase().includes(q);
+    const statusOk = !statusFilter || (statusFilter === 'active' ? emp.isActive : !emp.isActive);
+    return hit
+      && (!roleFilter || emp.role === roleFilter)
+      && (!deptFilter || emp.department === deptFilter)
+      && statusOk
+      && (!typeFilter || emp.employmentType === typeFilter);
+  }), [employees, search, roleFilter, deptFilter, statusFilter, typeFilter]);
+
+  const empPager = usePageSlice(
+    filteredEmployees,
+    8,
+    `${search}|${roleFilter}|${deptFilter}|${statusFilter}|${typeFilter}|${filteredEmployees.length}`
+  );
+
   if (loading || !user) return <LogoLoader />;
 
   return (
@@ -170,13 +215,40 @@ export default function EmployeesPage() {
             { label: 'Total', value: employees.length, color: 'from-codeat-teal to-codeat-accent' },
             { label: 'Active', value: employees.filter(e => e.isActive).length, color: 'from-green-500 to-emerald-400' },
             { label: 'Inactive', value: employees.filter(e => !e.isActive).length, color: 'from-red-500 to-rose-400' },
-            { label: 'Departments', value: [...new Set(employees.map(e => e.department).filter(Boolean))].length, color: 'from-purple-500 to-violet-400' },
+            { label: 'Departments', value: [...new Set(employees.map(e => e.department).filter(Boolean))].length, color: 'from-[#1c3d66] to-[#7fd4e4]' },
           ].map(stat => (
             <div key={stat.label} className="bg-codeat-mid rounded-xl border border-codeat-muted/30 p-4 flex items-center gap-3">
               <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${stat.color} flex items-center justify-center text-white font-bold text-lg`}>{stat.value}</div>
               <span className="text-codeat-gray text-sm font-medium">{stat.label}</span>
             </div>
           ))}
+        </div>
+
+        <div className="bg-codeat-mid rounded-2xl border border-codeat-muted/30 p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          <input value={search} onChange={(e) => setSearch(e.target.value)} className="input-field lg:col-span-1" placeholder="Search name, email, ID" />
+          <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} className="input-field">
+            <option value="">All roles</option>
+            <option value="employee">Employee</option>
+            <option value="intern">Intern</option>
+            <option value="hr">HR</option>
+            <option value="project_manager">Project manager</option>
+          </select>
+          <select value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)} className="input-field">
+            <option value="">All departments</option>
+            {departments.map((dept) => <option key={dept} value={dept}>{dept}</option>)}
+          </select>
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="input-field">
+            <option value="">All status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="input-field">
+            <option value="">All employment</option>
+            <option value="full_time">Full time</option>
+            <option value="part_time">Part time</option>
+            <option value="contract">Contract</option>
+            <option value="intern">Intern</option>
+          </select>
         </div>
 
         {/* Table */}
@@ -191,13 +263,14 @@ export default function EmployeesPage() {
                   <th className="px-4 sm:px-6 py-4 text-left text-codeat-silver font-semibold text-xs sm:text-sm uppercase tracking-wider">Department</th>
                   <th className="px-4 sm:px-6 py-4 text-left text-codeat-silver font-semibold text-xs sm:text-sm uppercase tracking-wider hidden lg:table-cell">Designation</th>
                   <th className="px-4 sm:px-6 py-4 text-left text-codeat-silver font-semibold text-xs sm:text-sm uppercase tracking-wider">Status</th>
+                  <th className="px-4 sm:px-6 py-4 text-left text-codeat-silver font-semibold text-xs sm:text-sm uppercase tracking-wider">Anywhere</th>
                   <th className="px-4 sm:px-6 py-4 text-right text-codeat-silver font-semibold text-xs sm:text-sm uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-codeat-muted/20">
                 {employees.length === 0 ? (
                   <tr>
-                    <td colSpan="7" className="px-6 py-16 text-center">
+                    <td colSpan="8" className="px-6 py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-16 h-16 rounded-full bg-codeat-muted/30 flex items-center justify-center">
                           <svg className="w-8 h-8 text-codeat-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -210,7 +283,7 @@ export default function EmployeesPage() {
                     </td>
                   </tr>
                 ) : (
-                  employees.map((emp) => (
+                  empPager.rows.map((emp) => (
                     <tr key={emp.id} className="hover:bg-codeat-dark/40 transition-colors duration-200">
                       <td className="px-4 sm:px-6 py-4 text-codeat-accent font-mono text-sm font-semibold">{emp.employeeId}</td>
                       <td className="px-4 sm:px-6 py-4">
@@ -234,6 +307,12 @@ export default function EmployeesPage() {
                         </span>
                       </td>
                       <td className="px-4 sm:px-6 py-4">
+                        <button type="button" onClick={() => toggleRemote(emp)}
+                          className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${emp.remoteAttendance ? 'bg-cyan-500/15 text-cyan-300 border-cyan-400/30' : 'bg-white/5 text-codeat-gray border-white/10'}`}>
+                          {emp.remoteAttendance ? 'Allowed' : 'Office only'}
+                        </button>
+                      </td>
+                      <td className="px-4 sm:px-6 py-4">
                         <div className="flex items-center justify-end gap-2">
                           <button onClick={() => openEdit(emp)}
                             className="p-2 rounded-lg bg-codeat-teal/10 text-codeat-teal hover:bg-codeat-teal/20 transition-colors duration-200" title="Edit employee">
@@ -255,13 +334,14 @@ export default function EmployeesPage() {
               </tbody>
             </table>
           </div>
+          <Pager {...empPager} />
         </div>
 
         {/* ── ADD EMPLOYEE MODAL ── */}
         {showModal && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
             <div className="bg-codeat-mid rounded-2xl border border-codeat-muted/50 w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl ">
-              <div className="sticky top-0 bg-codeat-mid border-b border-codeat-muted/30 p-6 bg-[#071e20] z-999">
+              <div className="sticky top-0 bg-codeat-mid border-b border-codeat-muted/30 p-6 bg-[#070b10] z-999">
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-2xl font-bold text-codeat-silver mb-1">Add New Employee</h2>
@@ -432,6 +512,13 @@ export default function EmployeesPage() {
                     <input type="date" value={editData.joining_date} onChange={e => setEditData({ ...editData, joining_date: e.target.value })} className="input-field" />
                   </div>
                 </div>
+                <label className="flex items-start gap-3 rounded-xl border border-cyan-400/20 bg-cyan-500/5 p-4">
+                  <input type="checkbox" checked={!!editData.remote_attendance} onChange={(e) => setEditData({ ...editData, remote_attendance: e.target.checked ? 1 : 0 })} className="mt-1" />
+                  <span>
+                    <span className="block text-codeat-silver text-sm font-semibold">Attendance from anywhere</span>
+                    <span className="block text-codeat-gray text-xs mt-1">This person can clock in and out outside the office location.</span>
+                  </span>
+                </label>
                 <div>
                   <label className="block text-codeat-silver text-sm font-semibold mb-2">Address</label>
                   <input type="text" value={editData.address} onChange={e => setEditData({ ...editData, address: e.target.value })} className="input-field" placeholder="Street address" />

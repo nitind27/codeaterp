@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 const ini = (n) => n ? n.split(' ').map(c => c[0]).join('').slice(0, 2).toUpperCase() : '?';
-const AV = ['from-[#1A656D] to-[#31747c]','from-purple-600 to-violet-500','from-blue-600 to-sky-500','from-emerald-600 to-green-500','from-amber-500 to-orange-400','from-rose-500 to-pink-500'];
+const AV = ['from-[#1c3d66] to-[#7fd4e4]','from-[#16324f] to-[#4eb8cc]','from-[#0e1c2c] to-[#7fd4e4]','from-[#2a6f8a] to-[#d7dee6]','from-[#1c3d66] to-[#a9d4e0]','from-[#16324f] to-[#f4f7f8]'];
 const av = (id) => AV[(id || 0) % AV.length];
 const TI = { general:'🌐', department:'🏢', project:'📁', direct:'👤' };
 
@@ -226,7 +226,7 @@ export default function Chat({ channel, user, socket, socketReady, onBack }) {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex-shrink-0 flex items-center gap-3 px-4 py-3 border-b border-white/[0.06] bg-[#060d0e]">
+      <div className="flex-shrink-0 flex items-center gap-3 px-4 py-3 border-b border-[#7fd4e4]/10 bg-[#070b10]">
         {/* Back button — mobile only */}
         {onBack && (
           <button
@@ -259,14 +259,14 @@ export default function Chat({ channel, user, socket, socketReady, onBack }) {
       <div className="flex-1 overflow-y-auto px-4 py-3">
         {loading ? (
           <div className="flex items-center justify-center h-full">
-            <svg className="w-6 h-6 animate-spin text-[#1A656D]" fill="none" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 animate-spin text-[#2a6f8a]" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
             </svg>
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="w-12 h-12 rounded-xl bg-[#1A656D]/10 flex items-center justify-center text-2xl mb-3">
+            <div className="w-12 h-12 rounded-xl bg-[#2a6f8a]/10 flex items-center justify-center text-2xl mb-3">
               {TI[channel.type] || '#'}
             </div>
             <p className="text-white/40 font-semibold text-sm">No messages yet</p>
@@ -286,7 +286,7 @@ export default function Chat({ channel, user, socket, socketReady, onBack }) {
                 <div className="flex-1 min-w-0">
                   {msg.isFirst && (
                     <div className="flex items-baseline gap-2 mb-0.5">
-                      <span className={`text-[12px] font-semibold ${isMe(msg.userId) ? 'text-[#7dd3d8]' : 'text-white/80'}`}>
+                      <span className={`text-[12px] font-semibold ${isMe(msg.userId) ? 'text-[#7fd4e4]' : 'text-white/80'}`}>
                         {isMe(msg.userId) ? 'You' : msg.userName}
                       </span>
                       <span className="text-[9px] text-white/20">{fmtTime(msg.createdAt)}</span>
@@ -334,13 +334,13 @@ export default function Chat({ channel, user, socket, socketReady, onBack }) {
             value={input}
             onChange={handleTyping}
             onKeyDown={handleKeyDown}
-            placeholder={`Message ${channel.type === 'direct' ? channel.name : '#' + channel.name}…`}            className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#1A656D]/50 transition"
+            placeholder={`Message ${channel.type === 'direct' ? channel.name : '#' + channel.name}…`}            className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#2a6f8a]/50 transition"
             autoComplete="off"
           />
           <button
             type="submit"
             disabled={!input.trim() || sending}
-            className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#1A656D] to-[#31747c] flex items-center justify-center text-white hover:opacity-90 active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
+            className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2a6f8a] to-[#4eb8cc] flex items-center justify-center text-white hover:opacity-90 active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
           >
             {sending
               ? <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>

@@ -17,6 +17,20 @@ export async function PUT(req, { params }) {
     const { id } = await params;
     const data = await req.json();
 
+    if (data.reset) {
+      await pool.execute(
+        `UPDATE attendance
+         SET clock_in = NULL, clock_out = NULL, clock_in_location = NULL, clock_out_location = NULL,
+             total_hours = NULL, status = 'absent',
+             notes = TRIM(CONCAT(IFNULL(notes, ''), ' Reset by admin so employee can clock in again.')),
+             updated_at = NOW()
+         WHERE id = ?`,
+        [id]
+      );
+      await logActivity(authResult.user.id, 'reset_attendance', 'attendance', id, 'Reset attendance day', req);
+      return NextResponse.json({ success: true, message: 'Attendance reset. Employee can clock in again.' });
+    }
+
     const updateFields = [];
     const updateValues = [];
 
