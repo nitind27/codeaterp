@@ -314,6 +314,10 @@ export default function EmployeesPage() {
                       </td>
                       <td className="px-4 sm:px-6 py-4">
                         <div className="flex items-center justify-end gap-2">
+                          <button onClick={() => router.push(`/employees/${emp.id}`)}
+                            className="px-2.5 py-1.5 rounded-lg bg-[#7fd4e4]/10 text-[#7fd4e4] text-xs font-semibold hover:bg-[#7fd4e4]/20" title="Open full profile">
+                            Profile
+                          </button>
                           <button onClick={() => openEdit(emp)}
                             className="p-2 rounded-lg bg-codeat-teal/10 text-codeat-teal hover:bg-codeat-teal/20 transition-colors duration-200" title="Edit employee">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

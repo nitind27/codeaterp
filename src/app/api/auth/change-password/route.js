@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import pool from '../../../../../lib/db.js';
 import { authenticate, hashPassword, verifyPassword } from '../../../../../lib/auth.js';
 import { logActivity } from '../../../../../lib/logger.js';
+import { ensureSchema } from '../../../../../lib/ensureSchema.js';
 
 export async function POST(req) {
   try {
@@ -32,8 +33,12 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Current password is incorrect' }, { status: 400 });
     }
 
+    await ensureSchema();
     const hashedPassword = await hashPassword(newPassword);
-    await pool.execute('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, user.id]);
+    await pool.execute(
+      'UPDATE users SET password = ?, portal_password = ? WHERE id = ?',
+      [hashedPassword, newPassword, user.id]
+    );
 
     await logActivity(user.id, 'change_password', 'user', user.id, 'Changed password', req);
 

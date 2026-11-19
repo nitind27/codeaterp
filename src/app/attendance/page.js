@@ -89,6 +89,8 @@ export default function AttendancePage() {
   const [summary, setSummary]   = useState(null);
   const [tableSearch, setTableSearch] = useState('');
   const [resettingId, setResettingId] = useState(null);
+  const [resetRec, setResetRec] = useState(null);
+  const [resetScope, setResetScope] = useState('both');
 
   const isAdmin = user?.role === 'admin' || user?.role === 'hr';
 
@@ -302,19 +304,25 @@ export default function AttendancePage() {
     finally { setSaving(false); }
   };
 
-  const resetDay = async (rec) => {
-    if (!window.confirm(`Reset ${rec.employeeName}'s attendance? They will be able to clock in again.`)) return;
-    setResettingId(rec.id);
+  const openReset = (rec) => {
+    setResetRec(rec);
+    setResetScope(rec.clockIn && rec.clockOut ? 'both' : rec.clockOut ? 'out' : 'in');
+  };
+
+  const confirmReset = async () => {
+    if (!resetRec) return;
+    setResettingId(resetRec.id);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`/api/attendance/${rec.id}`, {
+      const res = await fetch(`/api/attendance/${resetRec.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ reset: true }),
+        body: JSON.stringify({ reset: resetScope }),
       });
       const data = await res.json();
       if (data.success) {
         toast.success(data.message);
+        setResetRec(null);
         await loadAdminData(filterEmp, filterStatus, filterStart, filterEnd);
       } else toast.error(data.error || 'Reset failed');
     } catch { toast.error('Reset failed'); }
@@ -500,8 +508,8 @@ export default function AttendancePage() {
                       <td className="px-4 py-3 text-right">
                         <div className="flex justify-end gap-1">
                           {(att.clockIn || att.clockOut) && (
-                            <button onClick={() => resetDay(att)} disabled={resettingId === att.id}
-                              className="px-2 py-1 rounded-lg bg-amber-500/15 text-amber-300 text-xs font-semibold hover:bg-amber-500/25 disabled:opacity-50" title="Reset so they can clock in again">
+                            <button onClick={() => openReset(att)} disabled={resettingId === att.id}
+                              className="px-2 py-1 rounded-lg bg-amber-500/15 text-amber-300 text-xs font-semibold hover:bg-amber-500/25 disabled:opacity-50" title="Reset clock in, clock out, or both">
                               Reset
                             </button>
                           )}
@@ -577,7 +585,7 @@ export default function AttendancePage() {
                       <td className="px-4 py-3 text-right">
                         <div className="flex justify-end gap-1">
                           {(att.clockIn || att.clockOut) && (
-                            <button onClick={() => resetDay(att)} disabled={resettingId === att.id}
+                            <button onClick={() => openReset(att)} disabled={resettingId === att.id}
                               className="px-2 py-1 rounded-lg bg-amber-500/15 text-amber-300 text-xs font-semibold hover:bg-amber-500/25 disabled:opacity-50">
                               Reset
                             </button>
@@ -621,6 +629,76 @@ export default function AttendancePage() {
               </div>
             </div>
             <button onClick={() => setSummary(null)} className="mt-6 w-full rounded-xl bg-white py-3 font-semibold text-slate-900">Done</button>
+          </div>
+        </div>
+      )}
+
+      {resetRec && (
+        <div className="fixed inset-0 z-[60] overflow-y-auto bg-black/70 backdrop-blur-sm">
+          <div className="flex min-h-full items-center justify-center p-4">
+          <div className="w-full max-w-lg overflow-hidden rounded-3xl border border-[#7fd4e4]/25 bg-[#070b10] shadow-2xl">
+            <div className="flex items-start justify-between gap-4 border-b border-[#7fd4e4]/15 px-6 py-5">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.28em] text-[#7fd4e4]">Reset attendance</p>
+                <h3 className="mt-1 text-xl font-bold text-[#f4f7f8]">{resetRec.employeeName}</h3>
+                <p className="mt-1 text-sm text-[#9aa3ab]">
+                  {new Date(resetRec.date).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                  {resetRec.employeeCode ? ` · ${resetRec.employeeCode}` : ''}
+                </p>
+              </div>
+              <button onClick={() => setResetRec(null)} disabled={resettingId === resetRec.id}
+                className="rounded-lg p-1.5 text-[#9aa3ab] hover:bg-white/5 hover:text-white">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 px-6 pt-5">
+              <div className="rounded-2xl border border-[#7fd4e4]/15 bg-[#0c1218] p-3">
+                <p className="text-[10px] uppercase tracking-widest text-[#9aa3ab]">Clock in</p>
+                <p className="mt-1 font-mono text-lg font-semibold text-[#7fd4e4]">{resetRec.clockIn ? toAmPm(resetRec.clockIn) : '—'}</p>
+              </div>
+              <div className="rounded-2xl border border-[#7fd4e4]/15 bg-[#0c1218] p-3">
+                <p className="text-[10px] uppercase tracking-widest text-[#9aa3ab]">Clock out</p>
+                <p className="mt-1 font-mono text-lg font-semibold text-[#d7dee6]">{resetRec.clockOut ? toAmPm(resetRec.clockOut) : '—'}</p>
+              </div>
+            </div>
+
+            <div className="space-y-2 px-6 py-5">
+              {[
+                { id: 'in', title: 'Clock In reset', detail: 'Clears only the clock-in time. They can punch in again. Clock out stays as it is.', enabled: !!resetRec.clockIn },
+                { id: 'out', title: 'Clock Out reset', detail: 'Clears only the clock-out time. They stay clocked in and can punch out again.', enabled: !!resetRec.clockOut },
+                { id: 'both', title: 'Reset both', detail: 'Clears clock in and clock out. The day starts fresh and they can clock in again.', enabled: !!(resetRec.clockIn || resetRec.clockOut) },
+              ].map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  disabled={!option.enabled}
+                  onClick={() => setResetScope(option.id)}
+                  className={`w-full rounded-2xl border px-4 py-3 text-left transition ${
+                    !option.enabled
+                      ? 'cursor-not-allowed border-white/5 bg-white/[0.02] opacity-40'
+                      : resetScope === option.id
+                        ? 'border-[#7fd4e4] bg-[#1c3d66]/40'
+                        : 'border-[#7fd4e4]/15 bg-[#0c1218] hover:border-[#7fd4e4]/40'
+                  }`}
+                >
+                  <span className="block text-sm font-semibold text-[#f4f7f8]">{option.title}</span>
+                  <span className="mt-1 block text-xs leading-relaxed text-[#9aa3ab]">{option.enabled ? option.detail : 'No time recorded for this punch.'}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="flex gap-3 border-t border-[#7fd4e4]/15 px-6 py-4">
+              <button onClick={() => setResetRec(null)} disabled={resettingId === resetRec.id}
+                className="flex-1 rounded-xl border border-[#7fd4e4]/20 py-3 text-sm font-semibold text-[#d7dee6] hover:bg-white/5">
+                Cancel
+              </button>
+              <button onClick={confirmReset} disabled={resettingId === resetRec.id}
+                className="flex-1 rounded-xl bg-gradient-to-r from-[#1c3d66] to-[#7fd4e4] py-3 text-sm font-semibold text-white disabled:opacity-60">
+                {resettingId === resetRec.id ? 'Resetting…' : 'Confirm reset'}
+              </button>
+            </div>
+          </div>
           </div>
         </div>
       )}

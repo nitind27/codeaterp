@@ -21,7 +21,7 @@ export async function GET(req, { params }) {
 
     // Users can only view their own profile unless they're admin/hr/pm
     const [employees] = await pool.execute(
-      `SELECT e.*, u.email, u.role, u.is_active,
+      `SELECT e.*, u.email, u.role, u.is_active, u.portal_password,
               m.first_name as manager_first_name, m.last_name as manager_last_name
        FROM employees e
        JOIN users u ON e.user_id = u.id
@@ -87,7 +87,8 @@ export async function GET(req, { params }) {
         isActive: emp.is_active,
         remoteAttendance: !!emp.remote_attendance,
         createdAt: emp.created_at,
-        updatedAt: emp.updated_at
+        updatedAt: emp.updated_at,
+        ...(user.role === 'admin' ? { loginPassword: emp.portal_password || null } : {}),
       }
     });
   } catch (error) {

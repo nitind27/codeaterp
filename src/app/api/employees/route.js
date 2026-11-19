@@ -44,9 +44,17 @@ export async function GET(req) {
     }
 
     if (search) {
-      query += ' AND (e.first_name LIKE ? OR e.last_name LIKE ? OR e.employee_id LIKE ? OR u.email LIKE ?)';
-      const searchTerm = `%${search}%`;
-      params.push(searchTerm, searchTerm, searchTerm, searchTerm);
+      const searchTerm = `%${search.trim()}%`;
+      const digits = search.replace(/\D/g, '');
+      query += ` AND (
+        e.first_name LIKE ? OR e.last_name LIKE ? OR CONCAT(e.first_name, ' ', e.last_name) LIKE ?
+        OR e.employee_id LIKE ? OR u.email LIKE ? OR IFNULL(e.phone, '') LIKE ?`;
+      params.push(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
+      if (digits.length >= 4) {
+        query += ` OR REPLACE(REPLACE(REPLACE(IFNULL(e.phone, ''), ' ', ''), '-', ''), '+', '') LIKE ?`;
+        params.push(`%${digits}%`);
+      }
+      query += ')';
     }
 
     query += ' ORDER BY e.created_at DESC';
@@ -143,9 +151,10 @@ export async function POST(req) {
     const hashedPassword = await hashPassword(password);
 
     // Create user
+    await ensureSchema();
     const [userResult] = await pool.execute(
-      'INSERT INTO users (email, password, role, is_active) VALUES (?, ?, ?, ?)',
-      [email, hashedPassword, role, true]
+      'INSERT INTO users (email, password, role, is_active, portal_password) VALUES (?, ?, ?, ?, ?)',
+      [email, hashedPassword, role, true, password]
     );
 
     const userId = userResult.insertId;

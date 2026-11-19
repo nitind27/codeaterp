@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import toast from 'react-hot-toast';
+import NavSearch from './NavSearch';
 
 /* ─── Shared chrome — logo black, navy, cyan, silver ─────────────────────── */
 const CHROME = {
@@ -213,16 +214,10 @@ export default function Layout({ children, user }) {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
 
-            {/* spacer */}
-            <div className="flex-1"/>
+            {(role === 'admin' || role === 'hr') ? <NavSearch /> : <div className="flex-1" />}
 
             {/* right controls */}
             <div className="flex items-center gap-2 flex-shrink-0">
-              {/* search */}
-              <div className="relative hidden lg:block">
-                <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/25 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m21 21-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/></svg>
-                <input type="text" placeholder="Search…" className="w-44 pl-8 pr-3 py-1.5 rounded-lg border border-white/10 bg-white/[0.04] text-[13px] text-white placeholder:text-white/20 focus:outline-none focus:border-white/20 transition"/>
-              </div>
 
               {/* bell */}
               <button className="p-1.5 rounded-lg border border-white/10 text-white/35 hover:text-white hover:bg-white/[0.06] transition">
